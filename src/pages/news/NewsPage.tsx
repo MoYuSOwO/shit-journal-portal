@@ -13,6 +13,14 @@ interface NewsArticle {
 
 const FEATURED_ARTICLES: NewsArticle[] = [
   {
+    slug: 'zone-system',
+    date: '2026-03-02',
+    tag: 'New Feature / 新功能',
+    title: '构石四域上线：旱厕 → 化粪池 → 构石 → 沉淀区',
+    titleCn: 'Zone System Live: Latrine → Septic Tank → The Stone → Sediment',
+    summary: '所有新稿件进入「旱厕」盲审，集齐30个评分后根据分数自动晋升至「化粪池」或沉入「沉淀区」。化粪池中的精品可继续冲击「构石」殿堂——一旦晋升，永不降级。旱厕排序每5分钟随机洗牌，让每篇论文都有公平曝光机会。',
+  },
+  {
     slug: 'governance-1.0',
     date: '2026-02-20',
     tag: 'Call for Papers / 征稿启事',

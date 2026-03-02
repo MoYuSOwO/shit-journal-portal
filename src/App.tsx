@@ -1,10 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RoleProtectedRoute } from './components/auth/RoleProtectedRoute';
-import { HomePage } from './pages/HomePage';
 import { SubmitPage } from './pages/SubmitPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -16,6 +15,7 @@ import { ScreeningDashboard } from './pages/editor/ScreeningDashboard';
 import { ScreeningDetail } from './pages/editor/ScreeningDetail';
 import { NewsPage } from './pages/news/NewsPage';
 import { GovernanceArticle } from './pages/news/GovernanceArticle';
+import { ZoneSystemArticle } from './pages/news/ZoneSystemArticle';
 import { CommunityGuardPage } from './pages/CommunityGuardPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ComingSoon } from './pages/ComingSoon';
@@ -25,7 +25,7 @@ const App: React.FC = () => (
     <AuthProvider>
       <Layout>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to="/news" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/submit" element={<ProtectedRoute><SubmitPage /></ProtectedRoute>} />
@@ -36,6 +36,7 @@ const App: React.FC = () => (
           <Route path="/screening" element={<RoleProtectedRoute allowedRoles={['editor']}><ScreeningDashboard /></RoleProtectedRoute>} />
           <Route path="/screening/:id" element={<RoleProtectedRoute allowedRoles={['editor']}><ScreeningDetail /></RoleProtectedRoute>} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/zone-system" element={<ZoneSystemArticle />} />
           <Route path="/news/governance-1.0" element={<GovernanceArticle />} />
           <Route path="/community-guard" element={<CommunityGuardPage />} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />

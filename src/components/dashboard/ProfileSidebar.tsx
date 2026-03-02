@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useSnifferBadge } from '../../hooks/useSnifferBadge';
+import { useAuthorBadge } from '../../hooks/useAuthorBadge';
 import type { Profile } from '../../contexts/AuthContext';
 
 function getBadge(role: Profile['role']): { en: string; cn: string } {
@@ -15,6 +16,7 @@ function getBadge(role: Profile['role']): { en: string; cn: string } {
 export const ProfileSidebar: React.FC<{ submissionCount: number }> = ({ submissionCount }) => {
   const { profile, refreshProfile } = useAuth();
   const { isSnifferToday } = useSnifferBadge(profile?.id);
+  const { badge: authorBadge } = useAuthorBadge(profile?.id);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ display_name: '', institution: '', social_media: '' });
   const [saving, setSaving] = useState(false);
@@ -120,6 +122,16 @@ export const ProfileSidebar: React.FC<{ submissionCount: number }> = ({ submissi
             {isSnifferToday && (
               <span className="inline-block mt-1 ml-1 bg-pink-50 text-pink-500 text-[10px] font-bold px-3 py-1 rounded" title="今日嗅探兽 / Today's Sniffer">
                 🐽 嗅探兽 / Sniffer
+              </span>
+            )}
+            {authorBadge === 'stone' && (
+              <span className="inline-block mt-1 ml-1 bg-yellow-50 text-accent-gold text-[10px] font-bold px-3 py-1 rounded" title="造粪王 / Shit King">
+                🏆 造粪王 / Shit King
+              </span>
+            )}
+            {authorBadge === 'septic' && (
+              <span className="inline-block mt-1 ml-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold px-3 py-1 rounded" title="造粪机 / Shit Machine">
+                🏭 造粪机 / Shit Machine
               </span>
             )}
           </div>

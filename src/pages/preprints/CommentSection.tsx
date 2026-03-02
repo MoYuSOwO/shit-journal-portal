@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { fetchSnifferUsers } from '../../hooks/useSnifferBadge';
+import { fetchAuthorBadges, AuthorBadge } from '../../hooks/useAuthorBadge';
 
 interface Comment {
   id: string;
@@ -56,14 +57,16 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   const [topLevelVisible, setTopLevelVisible] = useState(TOP_LEVEL_PAGE_SIZE);
   const [replyVisibleCounts, setReplyVisibleCounts] = useState<Record<string, number>>({});
   const [snifferUsers, setSnifferUsers] = useState<Set<string>>(new Set());
+  const [authorBadges, setAuthorBadges] = useState<Map<string, AuthorBadge>>(new Map());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch sniffer badge status for all commenters
+  // Fetch sniffer badge + author badge status for all commenters
   useEffect(() => {
     const userIds = [...new Set(comments.map(c => c.user_id))] as string[];
     if (userIds.length > 0) {
       fetchSnifferUsers(userIds).then(setSnifferUsers);
+      fetchAuthorBadges(userIds).then(setAuthorBadges);
     }
   }, [comments]);
 
@@ -304,6 +307,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   isReply={false}
                   isAuthor={comment.user_id === authorUserId}
                   isSniffer={snifferUsers.has(comment.user_id)}
+                  authorBadge={authorBadges.get(comment.user_id) ?? null}
                   isLiked={userLikes.has(comment.id)}
                   currentUserId={currentUserId}
                   onReply={() => startReply(comment.id, comment.id, comment.display_name)}
@@ -323,6 +327,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                         isReply
                         isAuthor={reply.user_id === authorUserId}
                         isSniffer={snifferUsers.has(reply.user_id)}
+                        authorBadge={authorBadges.get(reply.user_id) ?? null}
                         showReplyTo={reply.reply_to_id !== reply.parent_id}
                         isLiked={userLikes.has(reply.id)}
                         currentUserId={currentUserId}
@@ -383,6 +388,7 @@ interface CommentItemProps {
   isReply: boolean;
   isAuthor: boolean;
   isSniffer?: boolean;
+  authorBadge?: AuthorBadge | null;
   showReplyTo?: boolean;
   isLiked: boolean;
   currentUserId?: string;
@@ -398,6 +404,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   isReply,
   isAuthor,
   isSniffer = false,
+  authorBadge = null,
   showReplyTo,
   isLiked,
   currentUserId,
@@ -421,6 +428,16 @@ const CommentItem: React.FC<CommentItemProps> = ({
       {isSniffer && (
         <span className="text-[10px] font-bold text-pink-500 bg-pink-50 px-1.5 py-0.5 rounded" title="嗅探兽 / Sniffer">
           🐽
+        </span>
+      )}
+      {authorBadge === 'stone' && (
+        <span className="text-[10px] font-bold text-accent-gold bg-yellow-50 px-1.5 py-0.5 rounded" title="造粪王 / Shit King">
+          🏆 造粪王
+        </span>
+      )}
+      {authorBadge === 'septic' && (
+        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title="造粪机 / Shit Machine">
+          🏭 造粪机
         </span>
       )}
       {!hideScores && comment.user_score != null && (
