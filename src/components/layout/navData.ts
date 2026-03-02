@@ -1,4 +1,5 @@
 export const NAV_LINKS_FULL = [
+  { label: 'Home', cn: '主页', to: '/' },
   { label: 'News', cn: '新闻', to: '/news' },
   { label: 'Fermentation', cn: '发酵区', to: '/preprints?zone=latrine' },
   { label: 'Submit', cn: '排泄', to: '/submit' },

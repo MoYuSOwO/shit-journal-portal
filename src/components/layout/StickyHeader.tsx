@@ -1,39 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { NAV_LINKS_FULL } from './navData';
-import { useAuth } from '../../hooks/useAuth';
-
 interface StickyHeaderProps {
   onToggleMenu: () => void;
   hasUnread: boolean;
 }
 
 export const StickyHeader: React.FC<StickyHeaderProps> = ({ onToggleMenu, hasUnread }) => {
-  const { user } = useAuth();
-  const links = NAV_LINKS_FULL.filter(l => (!l.authRequired || user) && !l.userMenuOnly);
 
   return (
     <div className="fixed top-0 left-0 w-full bg-black z-50 shadow-lg animate-slideDown">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-2.5 flex items-center justify-between relative">
-        <div className="flex md:hidden items-center relative">
+        <div className="flex items-center relative">
           <span className="material-symbols-outlined text-white text-xl cursor-pointer" onClick={onToggleMenu}>menu</span>
           {hasUnread && (
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-science-red rounded-full" />
           )}
         </div>
-        <nav className="hidden md:flex items-center gap-1">
-          {links.map(link =>
-            link.to ? (
-              <Link key={link.label} to={link.to} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors">
-                {link.label}
-              </Link>
-            ) : (
-              <a key={link.label} href="#" className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors">
-                {link.label}
-              </a>
-            )
-          )}
-        </nav>
         <Link to="/" className="absolute left-1/2 -translate-x-1/2 flex items-end gap-1 hover:text-accent-gold transition-colors">
           <span className="text-white font-serif font-black text-2xl tracking-tighter leading-[0.85]">S.H.I.T</span>
           <div className="hidden sm:flex flex-col justify-between text-gray-400 self-stretch py-px">
