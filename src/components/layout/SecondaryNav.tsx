@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { NAV_LINKS_FULL } from './navData';
 import { useAuth } from '../../hooks/useAuth';
+import { isEditor as checkIsEditor, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from '../../lib/roles';
 
 const NavLink: React.FC<{ label: string; cnLabel: string; to?: string }> = ({ label, cnLabel, to }) => {
   const className = "px-3 border-r border-gray-300 last:border-r-0 text-[11px] font-bold uppercase tracking-wider text-charcoal-light hover:text-science-red transition-colors whitespace-nowrap";
@@ -14,8 +15,10 @@ const NavLink: React.FC<{ label: string; cnLabel: string; to?: string }> = ({ la
 
 export const SecondaryNav: React.FC = () => {
   const { user, profile } = useAuth();
-  const isEditor = profile?.role === 'editor';
-  const links = NAV_LINKS_FULL.filter(l => (!l.authRequired || user) && !l.userMenuOnly && (!l.editorOnly || isEditor));
+  const editorAccess = checkIsEditor(profile?.role);
+  const adminAccess = checkIsAdmin(profile?.role);
+  const superAdminAccess = checkIsSuperAdmin(profile?.role);
+  const links = NAV_LINKS_FULL.filter(l => (!l.authRequired || user) && !l.userMenuOnly && (!l.editorOnly || editorAccess) && (!l.adminOnly || adminAccess) && (!l.superAdminOnly || superAdminAccess));
 
   return (
     <div className="hidden md:block w-full bg-[#F2F2F2] border-b border-gray-300">

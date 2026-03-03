@@ -7,7 +7,10 @@ import type { Profile } from '../../contexts/AuthContext';
 
 function getBadge(role: Profile['role']): { en: string; cn: string } {
   switch (role) {
+    case 'super_admin': return { en: 'Supreme Scooper', cn: '至尊铲屎官' };
+    case 'admin': return { en: 'Head Scooper', cn: '总铲屎官' };
     case 'editor': return { en: 'Chief Scooper', cn: '首席铲屎官' };
+    case 'community_guard': return { en: 'Community Guard', cn: '社区守护人' };
     case 'reviewer': return { en: 'Scooper', cn: '铲屎官' };
     default: return { en: 'Excreter', cn: '排泄者' };
   }

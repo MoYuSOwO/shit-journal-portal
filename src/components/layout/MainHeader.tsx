@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { isEditor, isAdmin, isSuperAdmin } from '../../lib/roles';
 
 interface MainHeaderProps {
   onToggleMenu: () => void;
@@ -99,14 +100,44 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ onToggleMenu, unreadCoun
                     <span className="material-symbols-outlined text-sm align-middle mr-2">dashboard</span>
                     Dashboard / 仪表台
                   </Link>
-                  {profile?.role === 'editor' && (
+                  {isEditor(profile?.role) && (
+                    <>
+                      <Link
+                        to="/screening"
+                        onClick={() => setDropdownOpen(false)}
+                        className="block px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 hover:text-accent-gold transition-colors border-t border-gray-100"
+                      >
+                        <span className="material-symbols-outlined text-sm align-middle mr-2">fact_check</span>
+                        Screening / 预审稿
+                      </Link>
+                      <Link
+                        to="/admin/feedback"
+                        onClick={() => setDropdownOpen(false)}
+                        className="block px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 hover:text-accent-gold transition-colors border-t border-gray-100"
+                      >
+                        <span className="material-symbols-outlined text-sm align-middle mr-2">mail</span>
+                        Feedback / 反馈箱
+                      </Link>
+                    </>
+                  )}
+                  {isAdmin(profile?.role) && (
                     <Link
-                      to="/screening"
+                      to="/admin/actions"
                       onClick={() => setDropdownOpen(false)}
                       className="block px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 hover:text-accent-gold transition-colors border-t border-gray-100"
                     >
-                      <span className="material-symbols-outlined text-sm align-middle mr-2">fact_check</span>
-                      Screening / 预审稿
+                      <span className="material-symbols-outlined text-sm align-middle mr-2">shield</span>
+                      Admin Actions / 管理操作
+                    </Link>
+                  )}
+                  {isSuperAdmin(profile?.role) && (
+                    <Link
+                      to="/admin/users"
+                      onClick={() => setDropdownOpen(false)}
+                      className="block px-4 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 hover:text-accent-gold transition-colors border-t border-gray-100"
+                    >
+                      <span className="material-symbols-outlined text-sm align-middle mr-2">admin_panel_settings</span>
+                      Users / 用户管理
                     </Link>
                   )}
                   <button

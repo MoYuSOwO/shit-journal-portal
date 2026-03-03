@@ -7,7 +7,7 @@ export interface Profile {
   display_name: string;
   institution: string | null;
   social_media: string | null;
-  role: 'author' | 'reviewer' | 'editor';
+  role: 'author' | 'reviewer' | 'community_guard' | 'editor' | 'admin' | 'super_admin';
   created_at: string;
 }
 

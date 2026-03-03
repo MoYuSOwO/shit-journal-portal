@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { NAV_LINKS_FULL } from './navData';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
+import { isEditor as checkIsEditor, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from '../../lib/roles';
 
 export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { user, profile, signOut } = useAuth();
@@ -18,8 +19,10 @@ export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       .then(({ count }) => setUnreadCount(count || 0));
   }, [user]);
   const navigate = useNavigate();
-  const isEditor = profile?.role === 'editor';
-  const links = NAV_LINKS_FULL.filter(l => (!l.authRequired || user) && (!l.editorOnly || isEditor) && !l.userMenuOnly);
+  const editorAccess = checkIsEditor(profile?.role);
+  const adminAccess = checkIsAdmin(profile?.role);
+  const superAdminAccess = checkIsSuperAdmin(profile?.role);
+  const links = NAV_LINKS_FULL.filter(l => (!l.authRequired || user) && (!l.editorOnly || editorAccess) && (!l.adminOnly || adminAccess) && (!l.superAdminOnly || superAdminAccess) && !l.userMenuOnly);
 
   const handleSignOut = async () => {
     onClose();
@@ -61,13 +64,40 @@ export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 >
                   Dashboard / 仪表台
                 </Link>
-                {isEditor && (
+                {editorAccess && (
+                  <>
+                    <Link
+                      to="/screening"
+                      onClick={onClose}
+                      className="px-4 py-2 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-accent-gold hover:border-accent-gold transition-all"
+                    >
+                      Screening / 预审稿
+                    </Link>
+                    <Link
+                      to="/admin/feedback"
+                      onClick={onClose}
+                      className="px-4 py-2 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-accent-gold hover:border-accent-gold transition-all"
+                    >
+                      Feedback / 反馈箱
+                    </Link>
+                  </>
+                )}
+                {adminAccess && (
                   <Link
-                    to="/screening"
+                    to="/admin/actions"
                     onClick={onClose}
                     className="px-4 py-2 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-accent-gold hover:border-accent-gold transition-all"
                   >
-                    Screening / 预审稿
+                    Admin Actions / 管理操作
+                  </Link>
+                )}
+                {superAdminAccess && (
+                  <Link
+                    to="/admin/users"
+                    onClick={onClose}
+                    className="px-4 py-2 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-accent-gold hover:border-accent-gold transition-all"
+                  >
+                    Users / 用户管理
                   </Link>
                 )}
                 <button

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { fetchSnifferUsers } from '../../hooks/useSnifferBadge';
 import { fetchAuthorBadges, AuthorBadge } from '../../hooks/useAuthorBadge';
+import { isAdmin as checkIsAdmin } from '../../lib/roles';
 
 interface Comment {
   id: string;
@@ -16,6 +17,8 @@ interface Comment {
   user_score: number | null;
   like_count: number;
   reply_to_name: string | null;
+  is_deleted?: boolean;
+  deleted_at?: string;
 }
 
 interface CommentSectionProps {
@@ -23,10 +26,12 @@ interface CommentSectionProps {
   authorUserId: string;
   comments: Comment[];
   currentUserId?: string;
+  currentUserRole?: string;
   userLikes: Set<string>;
   onCommentAdded: () => void;
   onToggleLike: (commentId: string) => void;
   hideScores?: boolean;
+  disabled?: boolean;
 }
 
 type SortMode = 'hot' | 'newest';
@@ -40,11 +45,14 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   authorUserId,
   comments,
   currentUserId,
+  currentUserRole,
   userLikes,
   onCommentAdded,
   onToggleLike,
   hideScores = false,
+  disabled = false,
 }) => {
+  const canDeleteAny = checkIsAdmin(currentUserRole);
   const location = useLocation();
   const [content, setContent] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('hot');
@@ -180,11 +188,19 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const handleDelete = async (commentId: string) => {
-    const { error } = await supabase
-      .from('preprint_comments')
-      .delete()
-      .eq('id', commentId);
-    if (!error) onCommentAdded();
+    // Soft-delete: mark as deleted instead of removing from DB
+    const isOwn = comments.find(c => c.id === commentId)?.user_id === currentUserId;
+    const { error } = await supabase.rpc(
+      isOwn ? 'self_delete_comment' : 'admin_delete_comment',
+      { target_comment_id: commentId },
+    );
+    if (!error) {
+      onCommentAdded();
+      // Clear preprint list cache (comment_count changed)
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('preprints_')) sessionStorage.removeItem(key);
+      });
+    }
   };
 
   const formatTime = (dateStr: string) => {
@@ -224,7 +240,11 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   return (
     <div className="bg-white border border-gray-200 p-6">
       {/* Post input (top) */}
-      {currentUserId ? (
+      {disabled ? (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-sm text-amber-700">
+          评论功能维护中，暂时关闭 / Comments are temporarily disabled
+        </div>
+      ) : currentUserId ? (
         <div className="mb-6">
           <textarea
             ref={textareaRef}
@@ -310,6 +330,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   authorBadge={authorBadges.get(comment.user_id) ?? null}
                   isLiked={userLikes.has(comment.id)}
                   currentUserId={currentUserId}
+                  canDeleteAny={canDeleteAny}
+                  disabled={disabled}
                   onReply={() => startReply(comment.id, comment.id, comment.display_name)}
                   onDelete={() => handleDelete(comment.id)}
                   onToggleLike={() => onToggleLike(comment.id)}
@@ -331,6 +353,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                         showReplyTo={reply.reply_to_id !== reply.parent_id}
                         isLiked={userLikes.has(reply.id)}
                         currentUserId={currentUserId}
+                        canDeleteAny={canDeleteAny}
+                        disabled={disabled}
                         onReply={() => startReply(comment.id, reply.id, reply.display_name)}
                         onDelete={() => handleDelete(reply.id)}
                         onToggleLike={() => onToggleLike(reply.id)}
@@ -392,6 +416,8 @@ interface CommentItemProps {
   showReplyTo?: boolean;
   isLiked: boolean;
   currentUserId?: string;
+  canDeleteAny?: boolean;
+  disabled?: boolean;
   onReply: () => void;
   onDelete: () => void;
   onToggleLike: () => void;
@@ -408,6 +434,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
   showReplyTo,
   isLiked,
   currentUserId,
+  canDeleteAny = false,
+  disabled = false,
   onReply,
   onDelete,
   onToggleLike,
@@ -459,7 +487,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     <div className="flex items-center justify-between mt-1.5">
       <div className="flex items-center gap-3">
         <span className="text-[10px] text-gray-400">{formatTime(comment.created_at)}</span>
-        {currentUserId && (
+        {currentUserId && !disabled && (
           <button
             onClick={onReply}
             className="text-[10px] font-bold text-gray-400 hover:text-accent-gold transition-colors"
@@ -467,7 +495,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             回复
           </button>
         )}
-        {currentUserId === comment.user_id && (
+        {(currentUserId === comment.user_id || canDeleteAny) && (
           <button
             onClick={onDelete}
             className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"

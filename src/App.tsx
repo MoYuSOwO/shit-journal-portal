@@ -20,6 +20,9 @@ import { ZoneSystemArticle } from './pages/news/ZoneSystemArticle';
 import { CommunityGuardPage } from './pages/CommunityGuardPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ComingSoon } from './pages/ComingSoon';
+import { FeedbackViewer } from './pages/admin/FeedbackViewer';
+import { UserManagement } from './pages/admin/UserManagement';
+import { AdminActions } from './pages/admin/AdminActions';
 
 const App: React.FC = () => (
   <BrowserRouter>
@@ -29,7 +32,7 @@ const App: React.FC = () => (
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/submit" element={<ProtectedRoute><SubmitPage /></ProtectedRoute>} />
+          <Route path="/submit" element={<SubmitPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthorDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/:id" element={<ProtectedRoute><SubmissionDetail /></ProtectedRoute>} />
           <Route path="/preprints" element={<PreprintListPage />} />
@@ -39,6 +42,9 @@ const App: React.FC = () => (
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/zone-system" element={<ZoneSystemArticle />} />
           <Route path="/news/governance-1.0" element={<GovernanceArticle />} />
+          <Route path="/admin/feedback" element={<RoleProtectedRoute allowedRoles={['editor']}><FeedbackViewer /></RoleProtectedRoute>} />
+          <Route path="/admin/users" element={<RoleProtectedRoute allowedRoles={['super_admin']}><UserManagement /></RoleProtectedRoute>} />
+          <Route path="/admin/actions" element={<RoleProtectedRoute allowedRoles={['admin']}><AdminActions /></RoleProtectedRoute>} />
           <Route path="/community-guard" element={<CommunityGuardPage />} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="*" element={<ComingSoon />} />

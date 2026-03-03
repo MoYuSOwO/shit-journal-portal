@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import type { Profile } from '../../contexts/AuthContext';
+import { hasRole } from '../../lib/roles';
 
 interface Props {
   children: React.ReactNode;
@@ -24,7 +25,10 @@ export const RoleProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) 
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  if (!profile || !allowedRoles.includes(profile.role)) {
+  // Hierarchical check: user passes if they have any of the allowed roles (or higher)
+  const hasAccess = profile && allowedRoles.some(role => hasRole(profile.role, role));
+
+  if (!hasAccess) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-32 text-center">
         <span className="text-6xl block mb-6">🚫</span>

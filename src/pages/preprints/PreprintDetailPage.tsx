@@ -8,12 +8,14 @@ import { PdfViewer } from './PdfViewer';
 import { RatingWidget } from './RatingWidget';
 import { LatrineRatingWidget } from './LatrineRatingWidget';
 import { CommentSection } from './CommentSection';
+import { MAINTENANCE_MODE } from '../../lib/maintenanceConfig';
+import { isAdmin } from '../../lib/roles';
 
 export const PreprintDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [preprint, setPreprint] = useState<any>(null);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -21,6 +23,8 @@ export const PreprintDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingDiscipline, setEditingDiscipline] = useState<string | null>(null);
   const [savingDiscipline, setSavingDiscipline] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [togglingHidden, setTogglingHidden] = useState(false);
 
   const isOwnSubmission = preprint?.user_id === user?.id;
 
@@ -85,15 +89,16 @@ export const PreprintDetailPage: React.FC = () => {
         .eq('id', id)
         .single();
 
-      // discipline_user_edited lives on submissions table, not in the mat view
-      if (data && user && data.user_id === user.id) {
+      // Fetch extra fields from submissions table (not in mat view)
+      if (data) {
         const { data: subData } = await supabase
           .from('submissions')
-          .select('discipline_user_edited')
+          .select('discipline_user_edited, hidden')
           .eq('id', id)
           .single();
         if (subData) {
-          data.discipline_user_edited = subData.discipline_user_edited;
+          (data as any).discipline_user_edited = subData.discipline_user_edited;
+          setHidden(subData.hidden ?? false);
         }
       }
 
@@ -177,6 +182,39 @@ export const PreprintDetailPage: React.FC = () => {
       >
         ← Back to {zoneLabel.en} / 返回{zoneLabel.cn}
       </button>
+
+      {/* Admin bar */}
+      {isAdmin(profile?.role) && (
+        <div className={`flex items-center justify-between p-4 mb-4 border text-sm ${hidden ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
+          <span className="text-xs font-bold text-gray-500">
+            管理操作 {hidden && <span className="text-red-500 ml-2">已隐藏</span>}
+          </span>
+          <button
+            onClick={async () => {
+              setTogglingHidden(true);
+              const newHidden = !hidden;
+              const { error } = await supabase.rpc('admin_toggle_hidden', {
+                target_submission_id: preprint.id,
+                new_hidden: newHidden,
+              });
+              if (!error) {
+                setHidden(newHidden);
+                // Clear preprint list cache so list pages reflect the change immediately
+                Object.keys(sessionStorage).forEach(key => {
+                  if (key.startsWith('preprints_')) sessionStorage.removeItem(key);
+                });
+              }
+              setTogglingHidden(false);
+            }}
+            disabled={togglingHidden}
+            className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50 cursor-pointer ${
+              hidden ? 'bg-green-600 hover:bg-green-700' : 'bg-red-500 hover:bg-red-600'
+            }`}
+          >
+            {togglingHidden ? '...' : hidden ? '取消隐藏 / Unhide' : '隐藏稿件 / Hide'}
+          </button>
+        </div>
+      )}
 
       {/* Metadata */}
       <div className="bg-white border border-gray-200 p-8 mb-8">
@@ -337,10 +375,12 @@ export const PreprintDetailPage: React.FC = () => {
           authorUserId={preprint.user_id}
           comments={comments}
           currentUserId={user?.id}
+          currentUserRole={profile?.role}
           userLikes={userLikes}
           onCommentAdded={fetchComments}
           onToggleLike={handleToggleLike}
           hideScores={isLatrine}
+          disabled={MAINTENANCE_MODE}
         />
       </div>
     </div>
