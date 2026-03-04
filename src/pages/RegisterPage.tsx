@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { REGISTRATION_CLOSED } from '../lib/maintenanceConfig';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -76,6 +77,47 @@ export const RegisterPage: React.FC = () => {
     setResent(true);
     setCooldown(60);
   };
+
+  if (REGISTRATION_CLOSED) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20">
+        <div className="text-center mb-10">
+          <img src="/LOGO2.png" alt="构石" className="w-16 h-16 inline-block mb-2" />
+          <h2 className="text-3xl font-serif font-bold mb-2">Registration Closed</h2>
+          <h3 className="chinese-serif text-xl text-charcoal-light">注册通道暂时关闭</h3>
+        </div>
+
+        <div className="bg-white p-8 border border-gray-200 shadow-sm">
+          <div className="font-serif text-charcoal leading-relaxed space-y-4 text-sm">
+            <p>各位未来的石友：</p>
+            <p>
+              我们目前正在进行系统维护与升级。为了确保新用户能够获得完整的使用体验，
+              <strong className="underline decoration-accent-gold decoration-2 underline-offset-4">注册通道暂时关闭</strong>。
+            </p>
+            <p>
+              投稿和评论功能也在维护中，待全部功能恢复后，注册将同步重新开放。
+              感谢你的耐心等待！
+            </p>
+          </div>
+
+          <div className="mt-8 space-y-3">
+            <Link
+              to="/login"
+              className="block w-full py-4 bg-accent-gold text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#B18E26] transition-colors shadow-lg text-center"
+            >
+              已有账号？前往登录 / Log In
+            </Link>
+            <Link
+              to="/submit"
+              className="block w-full py-4 border border-gray-300 text-charcoal text-xs font-bold uppercase tracking-[0.2em] hover:border-accent-gold hover:text-accent-gold transition-colors text-center"
+            >
+              前往留言板 / Message Board
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (success) {
     return (

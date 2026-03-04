@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { NAV_LINKS_FULL } from './navData';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
+import { REGISTRATION_CLOSED } from '../../lib/maintenanceConfig';
 import { isEditor as checkIsEditor, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from '../../lib/roles';
 
 export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -117,13 +118,15 @@ export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               >
                 Log In / 登录
               </Link>
-              <Link
-                to="/register"
-                onClick={onClose}
-                className="px-5 py-2.5 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-              >
-                Register / 注册
-              </Link>
+              {!REGISTRATION_CLOSED && (
+                <Link
+                  to="/register"
+                  onClick={onClose}
+                  className="px-5 py-2.5 border border-gray-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                >
+                  Register / 注册
+                </Link>
+              )}
             </div>
           )}
 

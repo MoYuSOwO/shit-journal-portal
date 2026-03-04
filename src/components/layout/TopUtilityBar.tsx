@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { REGISTRATION_CLOSED } from '../../lib/maintenanceConfig';
 
 export const TopUtilityBar: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -30,9 +31,11 @@ export const TopUtilityBar: React.FC = () => {
           <Link to="/login" className="hover:text-science-red transition-colors">
             Log In<span className="hidden sm:inline"> / 登录</span>
           </Link>
-          <Link to="/register" className="hover:text-science-red transition-colors">
-            Register<span className="hidden sm:inline"> / 注册</span>
-          </Link>
+          {!REGISTRATION_CLOSED && (
+            <Link to="/register" className="hover:text-science-red transition-colors">
+              Register<span className="hidden sm:inline"> / 注册</span>
+            </Link>
+          )}
         </>
       )}
       <a className="hover:text-science-red transition-colors" href="#">

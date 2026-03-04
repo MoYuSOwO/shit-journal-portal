@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { REGISTRATION_CLOSED } from '../lib/maintenanceConfig';
 
 type ResetStep = 'email' | 'otp' | 'password' | 'done';
 
@@ -412,12 +413,14 @@ export const LoginPage: React.FC = () => {
           {loading ? 'Authenticating... / 验证中...' : 'Log In / 登录'}
         </button>
 
-        <p className="text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-accent-gold font-bold hover:underline">
-            Register / 注册
-          </Link>
-        </p>
+        {!REGISTRATION_CLOSED && (
+          <p className="text-center text-sm text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-accent-gold font-bold hover:underline">
+              Register / 注册
+            </Link>
+          </p>
+        )}
       </form>
     </div>
   );
