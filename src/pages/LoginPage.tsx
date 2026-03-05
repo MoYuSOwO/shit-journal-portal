@@ -413,7 +413,13 @@ export const LoginPage: React.FC = () => {
           {loading ? 'Authenticating... / 验证中...' : 'Log In / 登录'}
         </button>
 
-        {!REGISTRATION_CLOSED && (
+        {REGISTRATION_CLOSED ? (
+          <p className="text-center text-sm text-gray-400">
+            <Link to="/register" className="hover:text-accent-gold transition-colors">
+              注册通道暂时关闭 / Registration temporarily closed
+            </Link>
+          </p>
+        ) : (
           <p className="text-center text-sm text-gray-500">
             Don't have an account?{' '}
             <Link to="/register" className="text-accent-gold font-bold hover:underline">
