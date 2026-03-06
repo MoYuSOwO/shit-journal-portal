@@ -1,6 +1,6 @@
 // src/lib/api.ts
 
-const BASE_URL = 'http://localhost:8000'; 
+const BASE_URL = 'https://api.shitjournal.org'; 
 
 /**
  * 核心拦截器：所有请求都要经过这个管道
