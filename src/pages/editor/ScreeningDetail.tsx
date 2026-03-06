@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { API } from '../../lib/api'; 
-import { EDITOR_STATUS_LABELS, DISCIPLINE_LABELS } from '../../lib/constants';
+import { EDITOR_STATUS_LABELS, DISCIPLINE_LABELS, TAG_LABELS } from '../../lib/constants';
 import type { Discipline } from '../../lib/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { PdfViewer } from '../preprints/PdfViewer';
@@ -33,6 +33,7 @@ export const ScreeningDetail: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [topicOverride, setTopicOverride] = useState<string>('');
   const [disciplineOverride, setDisciplineOverride] = useState<string>('interdisciplinary');
+  const [tagOverride, setTagOverride] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export const ScreeningDetail: React.FC = () => {
         setNotes(data.article.suggestions || '');
         setTopicOverride(isValidText(data.article.topic) ? data.article.topic : '');
         if (data.article.discipline) setDisciplineOverride(data.article.discipline);
+        if (data.article.tag) setTagOverride(data.article.tag);
       } catch (error) {
         console.error("加载详情失败", error);
       } finally {
@@ -63,11 +65,11 @@ export const ScreeningDetail: React.FC = () => {
     setSubmitting(true);
 
     try {
-      // 🔥 提交包含 topic 的修改意见
       await API.admin.reviewArticle(id, {
         status: decision,
         discipline: disciplineOverride,
-        topic: topicOverride, // 传给后端
+        topic: topicOverride,
+        tag: tagOverride,
         suggestions: notes.trim() || undefined
       });
       
@@ -101,7 +103,8 @@ export const ScreeningDetail: React.FC = () => {
   const displayInstitution = isValidText(submission.author?.institution) ? submission.author.institution : null;
   const displayEmail = isValidText(submission.author?.email) ? submission.author.email : isValidText(submission.email) ? submission.email : '无邮箱记录';
   const displayTopic = isValidText(submission.topic) ? submission.topic : null;
-  const displayTag = isValidText(submission.tag) ? submission.tag : '未分类';
+  const rawTag = isValidText(submission.tag) ? submission.tag : '';
+  const displayTag = rawTag ? (TAG_LABELS[rawTag] || rawTag) : '未分类';
 
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-12">
@@ -178,10 +181,10 @@ export const ScreeningDetail: React.FC = () => {
       <div className="bg-white border border-gray-200 p-8">
         <h3 className="text-xl font-serif font-bold mb-4">Screening Decision / 预审决定</h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
           <div>
             <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">
-              Solicited Topic / 约稿主题修正
+              Topic / 约稿主题
             </label>
             <select
               value={topicOverride}
@@ -194,7 +197,7 @@ export const ScreeningDetail: React.FC = () => {
           </div>
           <div>
             <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">
-              Discipline / 强制修正学科分类
+              Discipline / 学科分类
             </label>
             <select
               value={disciplineOverride}
@@ -203,6 +206,22 @@ export const ScreeningDetail: React.FC = () => {
             >
               {Object.entries(DISCIPLINE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label.cn} / {label.en}</option>
+              ))}
+            </select>
+          </div>
+          {/* 🔥 新增的 Tag 覆盖下拉框 */}
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">
+              Tag / 文章类型
+            </label>
+            <select
+              value={tagOverride}
+              onChange={e => setTagOverride(e.target.value)}
+              className="w-full border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:border-accent-gold bg-white"
+            >
+              <option value="" disabled>选择类型</option>
+              {Object.entries(TAG_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
               ))}
             </select>
           </div>

@@ -271,7 +271,7 @@ export const API = {
     },
     reviewArticle: async (
       articleId: string, 
-      data: { status?: string; discipline?: string; suggestions?: string; topic?: string }
+      data: { status?: string; discipline?: string; suggestions?: string; topic?: string; tag?: string; }
     ) => {
       return fetchAPI(`/api/admin/articles/${articleId}/review`, {
         method: 'PUT',

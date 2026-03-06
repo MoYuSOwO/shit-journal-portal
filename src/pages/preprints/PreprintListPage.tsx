@@ -26,6 +26,7 @@ const ZONE_SORT_OPTIONS: Record<Zone, { value: SortMode; en: string; cn: string 
     { value: 'newest', en: 'Newest', cn: '最新' },
     { value: 'most_rated', en: 'Most Rated', cn: '最多评分' },
   ],
+  published: []
 };
 
 const DISCIPLINES = [
@@ -39,11 +40,11 @@ const DISCIPLINES = [
 
 // Tiered cache TTL (ms) based on sort mode
 const CACHE_TTL: Record<string, number> = {
-  highest_rated: 30 * 60 * 1000,
-  most_rated: 30 * 60 * 1000,
-  newest: 10 * 60 * 1000,
-  hottest: 5 * 60 * 1000,
-  latrine: 2 * 60 * 1000,
+  highest_rated: 30 * 1000,
+  most_rated: 30 * 1000,
+  newest: 30 * 1000,
+  hottest: 30 * 1000,
+  latrine: 30 * 1000,
 };
 
 export const PreprintListPage: React.FC = () => {
