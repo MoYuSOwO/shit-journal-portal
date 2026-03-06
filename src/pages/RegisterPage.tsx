@@ -12,11 +12,15 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // 🔥 新增：用户是否同意协议的 state
+  const [hasAgreed, setHasAgreed] = useState(false);
 
   const [maintenance, setMaintenance] = useState({
     registration: false,
-    comment: false,
-    submit: false
+    comment_send: false,
+    submit: false,
+    comment_show: false,
   });
   const [maintLoading, setMaintLoading] = useState(true);
 
@@ -56,6 +60,12 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // 防呆拦截：防止黑客绕过 HTML 禁用属性硬提表单
+    if (!hasAgreed) {
+      setError('You must agree to the Terms and Privacy Policy / 请先阅读并同意用户协议与隐私政策');
+      return;
+    }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters / 密码至少6位');
@@ -102,6 +112,10 @@ export const RegisterPage: React.FC = () => {
       setCooldown(60);
     } catch (err) {}
   };
+
+  if (maintLoading) {
+    return <div className="text-center py-20"><img src="/LOGO2.png" alt="Loading" className="w-9 h-9 animate-pulse inline-block" /></div>;
+  }
 
   if (maintenance.registration) {
     return (
@@ -184,7 +198,37 @@ export const RegisterPage: React.FC = () => {
             <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-charcoal text-sm cursor-pointer" tabIndex={-1}>{showPassword ? '🙈' : '👁'}</button>
           </div>
         </div>
-        <button type="submit" disabled={loading} className="w-full py-4 bg-accent-gold text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#B18E26] transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+
+        {/* 🔥 新增：强制勾选同意区 */}
+        <div className="flex items-start gap-2 pt-2">
+          <div className="flex-shrink-0 pt-0.5">
+            <input 
+              type="checkbox" 
+              id="legal-agreement"
+              checked={hasAgreed}
+              onChange={(e) => setHasAgreed(e.target.checked)}
+              className="w-4 h-4 accent-accent-gold cursor-pointer"
+            />
+          </div>
+          <label htmlFor="legal-agreement" className="text-[11px] text-gray-500 leading-tight cursor-pointer select-none">
+            I have read and agree to the 
+            <Link to="/terms" target="_blank" className="text-accent-gold hover:underline mx-1">Terms of Service</Link> 
+            and 
+            <Link to="/privacy" target="_blank" className="text-accent-gold hover:underline mx-1">Privacy Policy</Link>.
+            <br />
+            <span className="text-gray-400">我已阅读并同意</span>
+            <Link to="/terms" target="_blank" className="text-accent-gold hover:underline mx-1">用户协议</Link>
+            <span className="text-gray-400">与</span>
+            <Link to="/privacy" target="_blank" className="text-accent-gold hover:underline mx-1">隐私政策</Link>。
+          </label>
+        </div>
+
+        {/* 修改了 disabled 逻辑，如果不勾选或者正在loading，按钮置灰 */}
+        <button 
+          type="submit" 
+          disabled={loading || !hasAgreed} 
+          className="w-full py-4 bg-accent-gold text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#B18E26] transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {loading ? 'Registering... / 注册中...' : 'Register / 注册'}
         </button>
         <p className="text-center text-sm text-gray-500">Already have an account?{' '}<Link to="/login" className="text-accent-gold font-bold hover:underline">Log In / 登录</Link></p>

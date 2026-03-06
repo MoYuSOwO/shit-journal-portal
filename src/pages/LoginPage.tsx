@@ -11,14 +11,19 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
+  
+  // 🔥 新增：同意条款的勾选状态
+  const [hasAgreed, setHasAgreed] = useState(false);
+
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [maintenance, setMaintenance] = useState({
     registration: false,
-    comment: false,
-    submit: false
+    comment_send: false,
+    submit: false,
+    comment_show: false,
   });
 
   // Reset password state
@@ -51,6 +56,13 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // 🔥 防呆拦截：未勾选协议不让登录
+    if (!hasAgreed) {
+      setError('You must agree to the Terms and Privacy Policy / 请先阅读并同意用户协议与隐私政策');
+      return;
+    }
+
     setLoading(true);
 
     const { error: err } = await signIn(email, password);
@@ -134,7 +146,7 @@ export const LoginPage: React.FC = () => {
   };
 
   // --------------------------------------------------------------------------
-  // 下方的 UI 渲染部分一字不改，完美兼容！
+  // UI 渲染部分
   // --------------------------------------------------------------------------
   if (forgotMode) {
     if (resetStep === 'done') {
@@ -235,6 +247,7 @@ export const LoginPage: React.FC = () => {
     );
   }
 
+  // 主登录界面
   return (
     <div className="max-w-md mx-auto px-4 py-20">
       <div className="text-center mb-10">
@@ -244,10 +257,12 @@ export const LoginPage: React.FC = () => {
       </div>
       <form onSubmit={handleSubmit} className="bg-white p-8 border border-gray-200 shadow-sm space-y-6">
         {error && <div className="p-3 bg-red-50 border border-science-red text-science-red text-sm font-bold">{error}</div>}
+        
         <div>
           <label className="form-label">Email / 邮箱</label>
           <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your.shit@email.com" required />
         </div>
+        
         <div>
           <label className="form-label">Password / 密码</label>
           <div className="relative">
@@ -256,9 +271,40 @@ export const LoginPage: React.FC = () => {
           </div>
           <button type="button" onClick={() => setForgotMode(true)} className="text-xs text-gray-400 hover:text-accent-gold mt-1 float-right">Forgot Password? / 忘记密码？</button>
         </div>
-        <button type="submit" disabled={loading} className="w-full py-4 bg-accent-gold text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#B18E26] transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+
+        {/* 🔥 新增：强制勾选同意区 */}
+        <div className="flex items-start gap-2 pt-4">
+          <div className="flex-shrink-0 pt-0.5">
+            <input 
+              type="checkbox" 
+              id="legal-agreement-login"
+              checked={hasAgreed}
+              onChange={(e) => setHasAgreed(e.target.checked)}
+              className="w-4 h-4 accent-accent-gold cursor-pointer"
+            />
+          </div>
+          <label htmlFor="legal-agreement-login" className="text-[11px] text-gray-500 leading-tight cursor-pointer select-none">
+            I have read and agree to the 
+            <Link to="/terms" target="_blank" className="text-accent-gold hover:underline mx-1">Terms of Service</Link> 
+            and 
+            <Link to="/privacy" target="_blank" className="text-accent-gold hover:underline mx-1">Privacy Policy</Link>.
+            <br />
+            <span className="text-gray-400">我已阅读并同意</span>
+            <Link to="/terms" target="_blank" className="text-accent-gold hover:underline mx-1">用户协议</Link>
+            <span className="text-gray-400">与</span>
+            <Link to="/privacy" target="_blank" className="text-accent-gold hover:underline mx-1">隐私政策</Link>。
+          </label>
+        </div>
+
+        {/* 修改了 disabled 逻辑，如果不勾选或者正在loading，按钮置灰 */}
+        <button 
+          type="submit" 
+          disabled={loading || !hasAgreed} 
+          className="w-full py-4 bg-accent-gold text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#B18E26] transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {loading ? 'Authenticating... / 验证中...' : 'Log In / 登录'}
         </button>
+
         {maintenance.registration ? (
           <p className="text-center text-sm text-gray-400"><Link to="/register" className="hover:text-accent-gold transition-colors">注册通道暂时关闭 / Registration temporarily closed</Link></p>
         ) : (

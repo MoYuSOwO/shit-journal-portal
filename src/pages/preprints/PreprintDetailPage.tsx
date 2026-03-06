@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { API } from '../../lib/api'; 
 import { useAuth } from '../../hooks/useAuth';
-import { DISCIPLINE_LABELS, ZONE_LABELS, ZONE_THRESHOLDS } from '../../lib/constants';
+// 🔥 引入你刚刚加好的 TAG_LABELS
+import { DISCIPLINE_LABELS, ZONE_LABELS, ZONE_THRESHOLDS, TAG_LABELS } from '../../lib/constants';
 import type { Zone, Discipline } from '../../lib/constants';
 import { PdfViewer } from './PdfViewer';
 import { RatingWidget } from './RatingWidget';
@@ -38,8 +39,9 @@ export const PreprintDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [maintenance, setMaintenance] = useState({
     registration: false,
-    comment: false,
-    submit: false
+    comment_send: false,
+    submit: false,
+    comment_show: false,
   });
   const [editingDiscipline, setEditingDiscipline] = useState<string | null>(null);
   const [savingDiscipline, setSavingDiscipline] = useState(false);
@@ -103,6 +105,43 @@ export const PreprintDetailPage: React.FC = () => {
       }
       fetchData();
     } catch (e: any) { alert(e.message || "删除失败"); }
+  };
+
+  const handleReportArticle = async () => {
+    if (!user) {
+      alert("请先登录后再举报 / Please sign in to report");
+      return;
+    }
+    // 🔥 防呆拦截：防手抖误触
+    if (!window.confirm("确定要举报该文章吗？恶意举报可能导致账号被封禁。/ Are you sure to report this?")) {
+      return;
+    }
+
+    try {
+      const res = await API.articles.report(id!);
+      alert(res.message);
+      fetchData(); // 刷新页面
+    } catch (e: any) {
+      alert(e.message || "举报失败");
+    }
+  };
+
+  const handleReportComment = async (commentId: string) => {
+    if (!user) {
+      alert("请先登录后再举报 / Please sign in to report");
+      return;
+    }
+    if (!window.confirm("确定要举报该评论吗？/ Are you sure to report this comment?")) {
+      return;
+    }
+
+    try {
+      const res = await API.interactions.reportComment(commentId);
+      alert(res.message);
+      fetchData(); // 刷新评论列表
+    } catch (e: any) {
+      alert(e.message || "举报失败");
+    }
   };
 
   // ==========================================
@@ -209,7 +248,13 @@ export const PreprintDetailPage: React.FC = () => {
   const displayAuthor = isValidText(preprint.author?.display_name) ? preprint.author!.display_name : '匿名作者 / Anonymous';
   const displayInstitution = isValidText(preprint.author?.institution) ? preprint.author!.institution : null;
   const displaySocialMedia = isValidText(preprint.author?.social_media) ? preprint.author!.social_media : null;
-  const displayTag = isValidText(preprint.tag) ? preprint.tag : '未分类 / Uncategorized';
+  
+  // 🔥 核心改动：用 TAG_LABELS 字典做翻译！如果找不到就用回原来的 fallback
+  const rawTag = preprint.tag;
+  const displayTag = (rawTag && TAG_LABELS[rawTag]) 
+      ? TAG_LABELS[rawTag] 
+      : (isValidText(rawTag) ? rawTag : '未分类 / Uncategorized');
+
   const displayTopic = isValidText(preprint.topic) ? preprint.topic : null;
   const coAuthors = Array.isArray(preprint.co_authors) ? preprint.co_authors : [];
 
@@ -239,7 +284,6 @@ export const PreprintDetailPage: React.FC = () => {
           {isStone && <span className="text-3xl" title="构石 / The Stone">🪨</span>}
           <h2 className="text-2xl font-serif font-bold">{displayTitle}</h2>
           
-          {/* 🔥 话题徽章复活！ */}
           {displayTopic && (
             <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-300 whitespace-nowrap shrink-0 mt-1">
               {displayTopic}
@@ -254,7 +298,6 @@ export const PreprintDetailPage: React.FC = () => {
             <p className="text-charcoal">{displayAuthor}</p>
           </div>
           
-          {/* 🔥 机构信息复活！ */}
           {displayInstitution && (
             <div>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Institution / 单位</span>
@@ -315,7 +358,6 @@ export const PreprintDetailPage: React.FC = () => {
             <p className="text-charcoal">{new Date(preprint.created_at).toLocaleString()}</p>
           </div>
 
-          {/* 🔥 社交媒体复活！ */}
           {displaySocialMedia && (
              <div>
                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Social Media / 社交媒体</span>
@@ -324,7 +366,6 @@ export const PreprintDetailPage: React.FC = () => {
           )}
         </div>
 
-        {/* 🔥 共同作者复活！ */}
         {coAuthors.length > 0 && (
           <div className="mt-6 pt-6 border-t border-gray-100">
             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-3">Co-Authors / 共同作者</span>
@@ -363,7 +404,18 @@ export const PreprintDetailPage: React.FC = () => {
 
       {/* PDF Viewer */}
       <div className="mb-8">
-        <h3 className="text-xl font-serif font-bold mb-4">Manuscript / 全文</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-serif font-bold">Manuscript / 全文</h3>
+          {user && !isOwnSubmission && (
+            <button 
+              onClick={handleReportArticle} 
+              className="px-3 py-1 text-[10px] font-bold text-red-500 border border-red-200 hover:bg-red-50 hover:text-red-700 transition-colors"
+              title="举报违规内容"
+            >
+              REPORT / 举报
+            </button>
+          )}
+        </div>
         <PdfViewer pdfPath={preprint.pdf_url} />
       </div>
 
@@ -373,7 +425,7 @@ export const PreprintDetailPage: React.FC = () => {
       <div className="bg-white border border-gray-200 p-6">
         
         {/* 输入框顶部 */}
-        {maintenance.comment ? (
+        {!maintenance.comment ? (
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-sm text-amber-700">评论功能维护中，暂时关闭</div>
         ) : user?.id ? (
           <div className="mb-6">
@@ -426,6 +478,7 @@ export const PreprintDetailPage: React.FC = () => {
                     onReply={() => startReply(comment.id, comment.id, comment.user?.display_name || '匿名')}
                     onDelete={() => handleDeleteComment(comment.id, comment.user?.id === user?.id)}
                     onToggleLike={() => handleToggleLike(comment.id)}
+                    onReport={() => handleReportComment(comment.id)}
                     hideScores={isLatrine}
                   />
 
@@ -452,6 +505,7 @@ export const PreprintDetailPage: React.FC = () => {
                             onReply={() => startReply(comment.id, reply.id, reply.user?.display_name || '匿名')}
                             onDelete={() => handleDeleteComment(reply.id, reply.user?.id === user?.id)}
                             onToggleLike={() => handleToggleLike(reply.id)}
+                            onReport={() => handleReportComment(comment.id)}
                             hideScores={isLatrine}
                           />
                         )
@@ -508,7 +562,7 @@ const formatTime = (dateStr: string) => {
 
 const CommentItem: React.FC<any> = ({ 
   comment, isReply, isAuthor, showReplyTo, replyToName, isLiked, 
-  currentUserId, canDeleteAny, onReply, onDelete, onToggleLike, hideScores 
+  currentUserId, canDeleteAny, onReply, onDelete, onToggleLike, hideScores, onReport
 }) => {
   const authorBadge = comment.user?.author_badge;
   const isSnifferToday = comment.user?.is_sniffer_today;
@@ -537,6 +591,11 @@ const CommentItem: React.FC<any> = ({
           <span className="text-[10px] text-gray-400">{formatTime(comment.created_at)}</span>
           {currentUserId && comment.user?.id !== "deleted" && <button onClick={onReply} className="text-[10px] font-bold text-gray-400 hover:text-accent-gold transition-colors">回复</button>}
           {(currentUserId === comment.user?.id || canDeleteAny) && comment.user?.id !== "deleted" && <button onClick={onDelete} className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors">删除</button>}
+          {currentUserId && comment.user?.id !== currentUserId && comment.user?.id !== "deleted" && (
+            <button onClick={onReport} className="text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors">
+              举报
+            </button>
+          )}
         </div>
         <button onClick={currentUserId && comment.user?.id !== "deleted" ? onToggleLike : undefined} className={`flex items-center gap-1 text-xs transition-all ${currentUserId ? 'cursor-pointer' : 'cursor-default'} ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}>
           <span className={`text-sm transition-all ${isLiked ? 'scale-110' : 'grayscale opacity-40'}`} style={isLiked ? {} : { filter: 'grayscale(100%)' }}>💩</span>

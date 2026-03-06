@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DISCIPLINE_LABELS, ZONE_THRESHOLDS } from '../../lib/constants';
+// 🔥 这里增加了 TAG_LABELS 的引入
+import { DISCIPLINE_LABELS, ZONE_THRESHOLDS, TAG_LABELS } from '../../lib/constants';
 import type { Zone, Discipline } from '../../lib/constants';
 
 // 🚀 纯粹的 FastAPI 数据结构映射
@@ -43,8 +44,12 @@ export const PreprintCard: React.FC<{ preprint: PreprintCardProps; zone: Zone }>
   const displayTitle = isValidText(preprint.title) ? preprint.title : '无题 / Untitled';
   const displayAuthor = isValidText(preprint.author?.display_name) ? preprint.author!.display_name : '匿名作者 / Anonymous';
   const displayInstitution = isValidText(preprint.author?.institution) ? preprint.author!.institution : null;
-  const displayTag = isValidText(preprint.tag) ? preprint.tag : '未分类 / Uncategorized';
   const displayTopic = isValidText(preprint.topic) ? preprint.topic : null;
+
+  // 🔥 核心修改：利用 TAG_LABELS 字典，将后端的 'hardcore'/'meme' 翻译成中文
+  const rawTag = isValidText(preprint.tag) ? preprint.tag : null;
+  // 如果字典里找不到，就兜底显示原文本，避免白板
+  const displayTag = rawTag ? (TAG_LABELS[rawTag] || rawTag) : '未分类 / Uncategorized';
 
   return (
     <Link

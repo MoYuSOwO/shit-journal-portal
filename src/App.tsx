@@ -24,6 +24,9 @@ import { ComingSoon } from './pages/ComingSoon';
 import { FeedbackViewer } from './pages/admin/FeedbackViewer';
 import { UserManagement } from './pages/admin/UserManagement';
 import { AdminActions } from './pages/admin/AdminActions';
+import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
+import { TermsOfService } from './pages/legal/TermsOfService';
+import { CookieConsent } from './components/layout/CookieConsent';
 
 const App: React.FC = () => (
   <BrowserRouter>
@@ -49,8 +52,11 @@ const App: React.FC = () => (
           <Route path="/admin/actions" element={<RoleProtectedRoute allowedRoles={['admin']}><AdminActions /></RoleProtectedRoute>} />
           <Route path="/community-guard" element={<CommunityGuardPage />} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           <Route path="*" element={<ComingSoon />} />
         </Routes>
+        <CookieConsent />
       </Layout>
     </AuthProvider>
   </BrowserRouter>

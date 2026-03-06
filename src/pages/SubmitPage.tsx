@@ -13,8 +13,9 @@ export const SubmitPage: React.FC = () => {
   const location = useLocation();
   const [maintenance, setMaintenance] = useState({
     registration: false,
-    comment: false,
-    submit: false
+    comment_send: false,
+    submit: false,
+    comment_show: false,
   });
   const [maintLoading, setMaintLoading] = useState(true);
 

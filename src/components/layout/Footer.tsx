@@ -43,10 +43,10 @@ export const Footer: React.FC = () => (
       </div>
 
       <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
-        <p>© 2026 S.H.I.T JOURNAL ACADEMIC. ALL RIGHTS WASTED. / 版权所有：没有版权</p>
+        <p>Copyright © 2026 S.H.I.T Journal “shitjournal.org” All Rights Reserved.</p>
         <div className="flex gap-8 mt-4 md:mt-0">
-          <a className="hover:text-white transition-colors" href="#">Privacy / 隐私</a>
-          <a className="hover:text-white transition-colors" href="#">Terms / 条款</a>
+          <a className="hover:text-white transition-colors" href="/privacy">Privacy Policy / 隐私政策</a>
+          <a className="hover:text-white transition-colors" href="/terms">Terms of Service / 用户条款</a>
           <span>DOI: 10.S.H.I.T/ROOT</span>
         </div>
       </div>

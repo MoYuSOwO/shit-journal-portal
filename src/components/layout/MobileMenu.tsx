@@ -11,8 +11,9 @@ export const MobileMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   
   const [maintenance, setMaintenance] = useState({
     registration: false,
-    comment: false,
-    submit: false
+    comment_send: false,
+    submit: false,
+    comment_show: false,
   });
 
   useEffect(() => {

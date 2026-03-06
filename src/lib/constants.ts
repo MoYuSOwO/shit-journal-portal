@@ -1,34 +1,27 @@
 export const STATUS_LABELS: Record<string, { en: string; cn: string; color: string }> = {
-  pending: { en: 'Screening', cn: '待预审', color: 'bg-gray-100 text-gray-500' },
-  under_review: { en: 'Scooper Review', cn: '铲屎官评审中', color: 'bg-yellow-50 text-yellow-700' },
-  revisions_requested: { en: 'Revisions Requested', cn: '需要修改', color: 'bg-blue-50 text-blue-700' },
-  accepted: { en: 'Approved for Flush', cn: '批准冲水', color: 'bg-green-50 text-green-700' },
-  rejected: { en: 'Clogged', cn: '堵塞了', color: 'bg-red-50 text-red-700' },
+  pending: { en: 'Pending', cn: '待预审', color: 'bg-gray-100 text-gray-500' },
+  passed: { en: 'Scooper Review', cn: '铲屎官评审中', color: 'bg-yellow-50 text-yellow-700' },
+  revisions: { en: 'Revisions Requested', cn: '需修改', color: 'bg-blue-50 text-blue-700' },
   flushed: { en: 'Desk Flushed', cn: '直接冲掉', color: 'bg-red-50 text-red-500' },
-
-  '待预审': { en: 'Pending', cn: '待预审', color: 'bg-gray-100 text-gray-500' },
-  '通过预审': { en: 'Scooper Review', cn: '铲屎官评审中', color: 'bg-yellow-50 text-yellow-700' },
-  '退回修改': { en: 'Revisions Requested', cn: '需要修改', color: 'bg-blue-50 text-blue-700' },
-  '被退回': { en: 'Desk Flushed', cn: '直接冲掉', color: 'bg-red-50 text-red-500' },
-  '被删除': { en: 'Deleted', cn: '被删除', color: 'bg-red-50 text-red-700' },
+  deleted: { en: 'Deleted', cn: '被删除', color: 'bg-red-50 text-red-700' },
+  hidden: { en: 'Deleted', cn: '被删除', color: 'bg-red-50 text-red-700' },
 };
 
 export const EDITOR_STATUS_LABELS: Record<string, { en: string; cn: string; color: string }> = {
   pending: { en: 'Pending', cn: '待预审', color: 'bg-amber-50 text-amber-700' },
-  under_review: { en: 'In Tank', cn: '已入池', color: 'bg-green-50 text-green-700' },
-  revisions_requested: { en: 'Revisions', cn: '需修改', color: 'bg-blue-50 text-blue-700' },
-  accepted: { en: 'Accepted', cn: '已接受', color: 'bg-green-50 text-green-700' },
-  rejected: { en: 'Rejected', cn: '已拒绝', color: 'bg-red-50 text-red-700' },
-  flushed: { en: 'Flushed', cn: '已冲掉', color: 'bg-red-50 text-red-500' },
+  passed: { en: 'In Tank', cn: '已入池', color: 'bg-green-50 text-green-700' },
+  revisions: { en: 'Revisions', cn: '需修改', color: 'bg-blue-50 text-blue-700' },
+  flushed: { en: 'Desk Flushed', cn: '已拒绝', color: 'bg-red-50 text-red-500' },
+  deleted: { en: 'Deleted', cn: '已删除', color: 'bg-red-50 text-red-700' },
+  hidden: { en: 'Deleted', cn: '已隐藏', color: 'bg-red-50 text-red-700' },
 };
 
-export const VISCOSITY_LABELS: Record<string, string> = {
-  stringy: 'Stringy / 拉丝型',
-  semi: 'Semi-solid / 半固态',
-  'high-entropy': 'High-Entropy / 高熵态',
+export const TAG_LABELS: Record<string, string> = {
+  hardcore: '硬核学术',
+  meme: '纯享整活',
 };
 
-export type Zone = 'latrine' | 'septic' | 'stone' | 'sediment';
+export type Zone = 'latrine' | 'septic' | 'stone' | 'sediment' | 'published';
 export type Discipline = 'science' | 'engineering' | 'medical' | 'agriculture' | 'law_social' | 'humanities' | 'interdisciplinary';
 
 export const ZONE_LABELS: Record<Zone, { en: string; cn: string; icon: string }> = {
@@ -36,6 +29,7 @@ export const ZONE_LABELS: Record<Zone, { en: string; cn: string; icon: string }>
   septic: { en: 'Septic Tank', cn: '化粪池', icon: '🧪' },
   stone: { en: 'The Stone', cn: '构石', icon: '🪨' },
   sediment: { en: 'Sediment', cn: '沉淀区', icon: '🕳️' },
+  published: { en: 'Published', cn: '正式见刊区', icon: '📕' },
 };
 
 export const DISCIPLINE_LABELS: Record<Discipline, { en: string; cn: string }> = {

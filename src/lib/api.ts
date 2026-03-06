@@ -1,6 +1,6 @@
 // src/lib/api.ts
 
-const BASE_URL = 'https://api.shitjournal.org'; 
+const BASE_URL = 'http://localhost:8000'; 
 
 /**
  * 核心拦截器：所有请求都要经过这个管道
@@ -166,6 +166,11 @@ export const API = {
     getTotalArticleCount: async () => {
       return fetchAPI(`/api/articles/count`);
     },
+
+    report: async (id: string, reason: string = '') => 
+      fetchAPI(`/api/articles/${id}/report`, { 
+        method: 'POST'
+      }),
   },
 
   // -------------------------
@@ -189,7 +194,11 @@ export const API = {
     },
     deleteComment: async (commentId) => {
       return fetchAPI(`/api/interactions/comments/${commentId}`, { method: 'DELETE' });
-    }
+    },
+    reportComment: async (commentId: string, reason: string = '') => 
+      fetchAPI(`/api/interactions/comments/${commentId}/report`, { 
+        method: 'POST'
+      }),
   },
 
   // -------------------------
