@@ -21,6 +21,8 @@ export const TAG_LABELS: Record<string, string> = {
   meme: '纯享整活',
 };
 
+export const FAVORITES_ENABLED = false;
+
 export type Zone = 'latrine' | 'septic' | 'stone' | 'sediment' | 'published';
 export type Discipline = 'science' | 'engineering' | 'medical' | 'agriculture' | 'law_social' | 'humanities' | 'interdisciplinary';
 
@@ -40,6 +42,17 @@ export const DISCIPLINE_LABELS: Record<Discipline, { en: string; cn: string }> =
   agriculture: { en: 'Agriculture', cn: '农' },
   law_social: { en: 'Law & Social', cn: '法社' },
   humanities: { en: 'Humanities', cn: '文' },
+};
+
+export const DISCIPLINE_EMOJIS: Record<Discipline | 'all', string> = {
+  all: '🗂️',
+  interdisciplinary: '🔀',
+  science: '🔬',
+  engineering: '⚙️',
+  medical: '🩺',
+  agriculture: '🌾',
+  law_social: '⚖️',
+  humanities: '📜',
 };
 
 export const ZONE_THRESHOLDS = {
