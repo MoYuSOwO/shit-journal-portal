@@ -59,23 +59,23 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ open, onClose }) =
         <button
           type="button"
           onClick={onClose}
-          className="flex w-full items-center gap-3 px-4 py-4 text-left text-sm font-bold uppercase tracking-widest text-white/80 hover:text-white transition-colors"
+          className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] font-bold uppercase tracking-widest text-white/80 transition-colors hover:text-white"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-lg">arrow_back_ios</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-base">arrow_back_ios</span>
           Back To Home / 返回首页
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-9">
         <form
           onSubmit={event => {
             event.preventDefault();
             submitSearch(query, scope);
           }}
-          className="space-y-8"
+          className="space-y-6"
         >
-          <div className="grid gap-6">
-            <div className="space-y-3">
+          <div className="grid gap-5">
+            <div className="space-y-2">
               <input
                 autoFocus
                 value={query}
@@ -84,14 +84,14 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ open, onClose }) =
                   if (error) setError('');
                 }}
                 placeholder="请输入搜索词"
-                className="w-full border-b border-white/35 bg-transparent pb-4 text-3xl italic text-white placeholder:text-white/80 focus:border-white focus:outline-none md:text-5xl"
+                className="w-full border-b border-white/35 bg-transparent pb-3 text-xl italic text-white placeholder:text-white/80 focus:border-white focus:outline-none md:text-3xl"
               />
-              {error && <p className="text-sm text-red-300">{error}</p>}
+              {error && <p className="text-[13px] text-red-300">{error}</p>}
             </div>
 
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <label htmlFor={selectId} className="text-lg font-bold uppercase tracking-widest text-white/80 md:text-sm">
+                <label htmlFor={selectId} className="text-base font-bold uppercase tracking-widest text-white/80 md:text-[12px]">
                   Searching / 搜索范围:
                 </label>
                 <div className="relative">
@@ -99,7 +99,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ open, onClose }) =
                     id={selectId}
                     value={scope}
                     onChange={event => setScope(event.target.value as SearchScope)}
-                    className="w-full min-w-[220px] appearance-none rounded-full border border-white/25 bg-transparent px-5 py-3 text-lg text-white focus:border-white focus:outline-none md:text-base"
+                    className="w-full min-w-[200px] appearance-none rounded-full border border-white/25 bg-transparent px-4 py-2.5 text-base text-white focus:border-white focus:outline-none md:text-sm"
                   >
                     {SEARCH_SCOPE_OPTIONS.map(option => (
                       <option key={option.value} value={option.value} className="bg-black text-white">
@@ -116,24 +116,24 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ open, onClose }) =
               <button
                 type="submit"
                 aria-label="Search / 搜索"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-science-red px-8 py-3 text-lg font-bold uppercase tracking-widest text-white transition-all duration-300 hover:translate-x-0.5 hover:bg-red-700 md:text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-science-red px-7 py-2.5 text-base font-bold uppercase tracking-widest text-white transition-all duration-300 hover:translate-x-0.5 hover:bg-red-700 md:text-[12px]"
               >
                 Search / 搜索
-                <span aria-hidden="true" className="material-symbols-outlined text-xl md:text-base">arrow_forward_ios</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-lg md:text-sm">arrow_forward_ios</span>
               </button>
             </div>
           </div>
         </form>
 
-        <div className="mt-10 border-t border-white/10 pt-8">
+        <div className="mt-8 border-t border-white/10 pt-6">
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/65">Tag Search / 标签搜索:</p>
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-2.5">
             {QUICK_TAG_SEARCHES.map(tag => (
               <button
                 key={tag.query}
                 type="button"
                 onClick={() => submitSearch(tag.query, 'tag')}
-                className="rounded-full border border-white/20 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/55 hover:bg-white/8"
+                className="rounded-full border border-white/20 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/90 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/55 hover:bg-white/8"
               >
                 {tag.label} / {tag.labelEn}
               </button>

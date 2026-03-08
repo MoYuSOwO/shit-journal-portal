@@ -113,36 +113,36 @@ export const SearchPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-paper">
       <section className="bg-black text-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-white/55">Search Archive / 搜索档案</p>
-              <h1 className="mt-3 font-serif text-4xl md:text-6xl">Search The Journal / 搜索期刊</h1>
-              <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">
+              <h1 className="mt-2 font-serif text-3xl md:text-5xl">Search The Journal / 搜索期刊</h1>
+              <p className="mt-2 max-w-2xl text-[13px] text-white/70 md:text-sm">
                 从文章标题、作者昵称和标签线索里快速定位你要找的研究、整活和社区材料。
               </p>
             </div>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white/75 transition-colors hover:text-white"
+              className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest text-white/75 transition-colors hover:text-white"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-base">arrow_back</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_back</span>
               Back To Home / 返回首页
             </Link>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto]">
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_auto]">
             <input
               value={draftQuery}
               onChange={event => setDraftQuery(event.target.value)}
               placeholder="搜索标题、作者与标签"
-              className="w-full border-b border-white/30 bg-transparent pb-4 text-2xl italic text-white placeholder:text-white/70 focus:border-white focus:outline-none md:text-4xl"
+              className="w-full border-b border-white/30 bg-transparent pb-3 text-lg italic text-white placeholder:text-white/70 focus:border-white focus:outline-none md:text-2xl"
             />
             <div className="relative">
               <select
                 value={draftScope}
                 onChange={event => setDraftScope(event.target.value as SearchScope)}
-                className="w-full appearance-none rounded-full border border-white/20 bg-transparent px-5 py-3 text-base text-white focus:border-white focus:outline-none"
+                className="w-full appearance-none rounded-full border border-white/20 bg-transparent px-4 py-2.5 text-sm text-white focus:border-white focus:outline-none"
               >
                 {SEARCH_SCOPE_OPTIONS.map(option => (
                   <option key={option.value} value={option.value} className="bg-black text-white">
@@ -157,20 +157,20 @@ export const SearchPage: React.FC = () => {
             <button
               type="submit"
               aria-label="Search / 搜索"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-science-red px-8 py-3 text-sm font-bold uppercase tracking-widest text-white transition-transform duration-300 hover:translate-x-0.5 hover:bg-red-700"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-science-red px-7 py-2.5 text-[12px] font-bold uppercase tracking-widest text-white transition-transform duration-300 hover:translate-x-0.5 hover:bg-red-700"
             >
               Search / 搜索
-              <span aria-hidden="true" className="material-symbols-outlined text-base">arrow_forward_ios</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward_ios</span>
             </button>
           </form>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-2.5">
             {QUICK_TAG_SEARCHES.map(tag => (
               <button
                 key={tag.query}
                 type="button"
                 onClick={() => setSearchParams(createSearchParams(tag.query, 'tag'))}
-                className="rounded-full border border-white/20 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/55 hover:bg-white/8"
+                className="rounded-full border border-white/20 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/55 hover:bg-white/8"
               >
                 {tag.label} / {tag.labelEn}
               </button>
@@ -179,15 +179,15 @@ export const SearchPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        <div className="flex flex-col gap-3 border-b border-gray-200 pb-6 md:flex-row md:items-end md:justify-between">
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
+        <div className="flex flex-col gap-2.5 border-b border-gray-200 pb-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">Result Snapshot / 结果快照</p>
-            <h2 className="mt-2 text-2xl font-bold uppercase tracking-[0.08em] text-charcoal">
+            <h2 className="mt-1.5 text-xl font-bold uppercase tracking-[0.08em] text-charcoal md:text-2xl">
               {query ? `“${query}”` : 'Search Everything / 搜索全站'}
             </h2>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-[13px] text-gray-500 md:text-sm">
             {loading
               ? 'Searching… / 搜索中…'
               : `${results.length} result${results.length === 1 ? '' : 's'} / 条，范围 ${SEARCH_SCOPE_OPTIONS.find(option => option.value === committedScope)?.labelCn ?? '全站'}${totalPages > 1 ? `，第 ${currentPage} / ${totalPages} 页` : ''}`}
@@ -195,35 +195,35 @@ export const SearchPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700 md:text-sm">
             {error}
           </div>
         )}
 
         {!query && !error && (
-          <div className="mt-10 rounded-[2rem] border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+          <div className="mt-8 rounded-[2rem] border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">Ready / 就绪</p>
-            <p className="mt-4 font-serif text-2xl text-charcoal">从上面的搜索框开始 / Start from the search box above.</p>
+            <p className="mt-3 font-serif text-xl text-charcoal md:text-2xl">从上面的搜索框开始 / Start from the search box above.</p>
           </div>
         )}
 
         {loading && (
-          <div className="mt-10 flex items-center justify-center py-16">
-            <img src="/LOGO2.png" alt="Loading" className="h-10 w-10 animate-pulse" />
+          <div className="mt-8 flex items-center justify-center py-12">
+            <img src="/LOGO2.png" alt="Loading" className="h-8 w-8 animate-pulse" />
           </div>
         )}
 
         {!loading && query && !error && results.length === 0 && (
-          <div className="mt-10 rounded-[2rem] border border-gray-200 bg-white px-6 py-12 text-center">
+          <div className="mt-8 rounded-[2rem] border border-gray-200 bg-white px-6 py-10 text-center">
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">No Match / 无匹配</p>
-            <p className="mt-4 font-serif text-2xl text-charcoal">没有找到相关内容 / No matching results found.</p>
-            <p className="mt-3 text-sm text-gray-500">试试换一个关键词，或者改成 `Anywhere / 全站` 搜索。</p>
+            <p className="mt-3 font-serif text-xl text-charcoal md:text-2xl">没有找到相关内容 / No matching results found.</p>
+            <p className="mt-2.5 text-[13px] text-gray-500 md:text-sm">试试换一个关键词，或者改成 `Anywhere / 全站` 搜索。</p>
           </div>
         )}
 
         {!loading && results.length > 0 && (
           <>
-            <div className="mt-8 space-y-4">
+            <div className="mt-6 space-y-4">
               {paginatedResults.map((result, index) => {
                 const zone = result.zones in ZONE_LABELS ? result.zones : 'latrine';
 

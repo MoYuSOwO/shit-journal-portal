@@ -54,7 +54,7 @@ export const PreprintCard: React.FC<{ preprint: PreprintCardProps; zone: Zone }>
   return (
     <Link
       to={`/preprints/${preprint.id}`}
-      className="block bg-white border border-gray-200 p-6 hover:border-accent-gold transition-colors group"
+      className="block bg-white border border-gray-200 p-4 hover:border-accent-gold transition-colors group"
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

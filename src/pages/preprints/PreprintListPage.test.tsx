@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { PreprintListPage } from './PreprintListPage';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -19,22 +19,30 @@ describe('PreprintListPage', () => {
     expect(screen.getByText(/Dr\. Flush/i)).toBeInTheDocument();
   });
 
-  it('uses compact mobile padding for discipline and sort controls', async () => {
+  it('uses a compact discipline trigger and renders the custom menu', async () => {
     renderWithProviders(<PreprintListPage />, {
       initialEntries: ['/preprints?zone=septic'],
       routes: [{ path: '/preprints', element: <PreprintListPage /> }],
     });
 
     await waitFor(() => {
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '全部 / All' })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('combobox')).toHaveClass('px-1', 'py-[6px]', 'md:px-3', 'md:py-1.5');
+    const disciplineTrigger = screen.getByRole('button', { name: '全部 / All' });
+    expect(disciplineTrigger).toHaveClass(
+      'ui-select-trigger',
+    );
+
+    fireEvent.click(disciplineTrigger);
+
+    expect(screen.getByRole('listbox', { name: 'Discipline / 学科' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '交叉 / Interdisciplinary' })).toBeInTheDocument();
+
     expect(screen.getByRole('button', { name: 'Newest / 最新' })).toHaveClass(
       'px-1',
       'py-[6px]',
-      'md:px-3',
-      'md:py-1.5',
+      'text-[10px]',
     );
   });
 });

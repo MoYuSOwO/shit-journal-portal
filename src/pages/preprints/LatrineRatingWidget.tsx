@@ -1,69 +1,128 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ZONE_THRESHOLDS } from '../../lib/constants';
+import { RatingImpactBurst, type RatingImpact } from './RatingImpactBurst';
 
 interface LatrineRatingWidgetProps {
   currentRating: number | null;
   ratingCount: number;
   isOwnSubmission: boolean;
+  getImpactTarget: () => { x: number; y: number };
   onRate: (score: number) => void;
 }
 
 export const LatrineRatingWidget: React.FC<LatrineRatingWidgetProps> = ({
-  currentRating, ratingCount, isOwnSubmission, onRate,
+  currentRating, ratingCount, isOwnSubmission, getImpactTarget, onRate,
 }) => {
   const [hoverScore, setHoverScore] = useState<number | null>(null);
+  const [impacts, setImpacts] = useState<RatingImpact[]>([]);
+  const nextImpactId = useRef(1);
+  const impactTimers = useRef<number[]>([]);
   const threshold = ZONE_THRESHOLDS.LATRINE_TO_SEPTIC_COUNT;
   const progress = Math.min(100, (ratingCount / threshold) * 100);
 
+  useEffect(() => () => {
+    impactTimers.current.forEach(timer => window.clearTimeout(timer));
+  }, []);
+
+  const triggerImpact = (score: number, rect: DOMRect) => {
+    const impactTarget = getImpactTarget();
+    const created = Array.from({ length: score }, (_, index) => {
+      const startX = rect.left + (rect.width / 2) + ((index - (score - 1) / 2) * 22);
+      const startY = rect.top + (rect.height / 2) - 10 - ((index % 2) * 10);
+      const deltaX = impactTarget.x - startX;
+      const deltaY = impactTarget.y - startY;
+      const arcLift = -60 - Math.random() * 48;
+      const lateralSwing = (Math.random() - 0.5) * 70;
+      const cp1X = deltaX * 0.22 + lateralSwing;
+      const cp1Y = deltaY * 0.14 + arcLift;
+      const cp2X = deltaX * 0.68 + (lateralSwing * 0.4);
+      const cp2Y = deltaY * 0.82 - (12 + Math.random() * 22);
+      const baseRotation = (Math.random() - 0.5) * 32;
+
+      return {
+        id: nextImpactId.current++,
+        x: startX,
+        y: startY,
+        deltaX,
+        deltaY,
+        cp1X,
+        cp1Y,
+        cp2X,
+        cp2Y,
+        delayMs: index * 260,
+        durationMs: 1200,
+        rotationStartDeg: baseRotation,
+        rotationMidDeg: baseRotation + ((Math.random() > 0.5 ? 1 : -1) * (55 + Math.random() * 55)),
+        rotationEndDeg: baseRotation + ((Math.random() > 0.5 ? 1 : -1) * (95 + Math.random() * 80)),
+      };
+    });
+
+    setImpacts(prev => [...prev, ...created]);
+
+    created.forEach((impact, index) => {
+      const timer = window.setTimeout(() => {
+        setImpacts(prev => prev.filter(item => item.id !== impact.id));
+      }, impact.durationMs + 140 + index * 260);
+      impactTimers.current.push(timer);
+    });
+  };
+
   return (
-    <div className="bg-white border border-gray-200 p-6">
-      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
-        Rate / 盲评
-      </h3>
+    <div className="flex h-full flex-col justify-between bg-white border border-gray-200 p-4">
+      <RatingImpactBurst impacts={impacts} />
+      <div>
+        <h3 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+          Rate / 盲评
+        </h3>
 
-      {isOwnSubmission ? (
-        <p className="text-sm text-gray-500 italic">
-          You cannot rate your own submission. / 不能评价自己的稿件。
-        </p>
-      ) : (
-        <div className="flex items-center gap-1 mb-4">
-          {[1, 2, 3, 4, 5].map(score => (
-            <button
-              key={score}
-              onClick={() => onRate(score)}
-              onMouseEnter={() => setHoverScore(score)}
-              onMouseLeave={() => setHoverScore(null)}
-              className="text-3xl cursor-pointer transition-transform hover:scale-125 focus:outline-none"
-              title={`${score} / 5`}
-            >
-              {score <= (hoverScore ?? currentRating ?? 0) ? '💩' : '⚪'}
-            </button>
-          ))}
-          {currentRating && (
-            <span className="ml-3 text-sm text-gray-500">
-              Your rating: {currentRating}/5
-            </span>
-          )}
-        </div>
-      )}
+        {isOwnSubmission ? (
+          <p className="min-h-[38px] text-sm text-gray-500 italic">
+            You cannot rate your own submission. / 不能评价自己的稿件。
+          </p>
+        ) : (
+          <div className="min-h-[38px]">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map(score => (
+                <button
+                  key={score}
+                  onClick={event => {
+                    triggerImpact(score, event.currentTarget.getBoundingClientRect());
+                    onRate(score);
+                  }}
+                  onMouseEnter={() => setHoverScore(score)}
+                  onMouseLeave={() => setHoverScore(null)}
+                  className="cursor-pointer text-[2rem] leading-none transition-transform hover:scale-110 focus:outline-none"
+                  title={`${score} / 5`}
+                >
+                  {score <= (hoverScore ?? currentRating ?? 0) ? '💩' : '⚪'}
+                </button>
+              ))}
+              {currentRating && (
+                <span className="relative z-[1] ml-2 text-xs text-gray-500">
+                  Your rating: {currentRating}/5
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* Progress bar instead of avg score */}
-      <div className="pt-4 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-2">
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        <div className="mb-1.5 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
             评价进度 / Rating Progress
           </span>
-          <span className="text-sm font-serif font-bold text-charcoal">
+          <span className="text-xs font-serif font-bold text-charcoal tabular-nums">
             {ratingCount} / {threshold}
           </span>
         </div>
-        <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className="bg-accent-gold h-full rounded-full transition-all duration-500"
+            className="h-full rounded-full bg-accent-gold transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-[10px] text-gray-400 mt-2">
+        <p className="mt-1.5 text-[10px] text-gray-400">
           {ratingCount < threshold
             ? `还需 ${threshold - ratingCount} 份评价即可解锁分数 / ${threshold - ratingCount} more ratings to unlock score`
             : '即将毕业进入化粪池 / Graduating to Septic Tank soon'}

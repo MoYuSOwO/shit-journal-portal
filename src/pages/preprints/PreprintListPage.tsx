@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { API } from '../../lib/api'; 
+import { CustomSelect } from '../../components/forms/CustomSelect';
 import { PreprintCard } from './PreprintCard';
-import { ZONE_LABELS, DISCIPLINE_LABELS } from '../../lib/constants';
+import { ZONE_LABELS, DISCIPLINE_LABELS, DISCIPLINE_EMOJIS } from '../../lib/constants';
 import type { Zone, Discipline } from '../../lib/constants';
 
 const VALID_ZONES: Zone[] = ['latrine', 'septic', 'stone', 'sediment'];
@@ -66,6 +67,14 @@ export const PreprintListPage: React.FC = () => {
 
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const disciplineOptions = useMemo(
+    () => DISCIPLINES.map(item => ({
+      value: item.value,
+      label: `${item.cn} / ${item.en}`,
+      emoji: DISCIPLINE_EMOJIS[item.value],
+    })),
+    [],
+  );
 
   useEffect(() => {
     const cacheKey = `preprints_${zone}_${sort}_${discipline}_${page}`;
@@ -140,7 +149,7 @@ export const PreprintListPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-2 lg:px-8 py-6">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-4">
         <h2 className="text-3xl font-serif font-bold mb-1">
           <span className="mr-2">{zoneInfo.icon}</span>
           {zoneInfo.en}
@@ -169,59 +178,63 @@ export const PreprintListPage: React.FC = () => {
       </div>
 
       {/* Zone tabs */}
-      <div className="flex gap-1 mb-4 border-b border-gray-200 overflow-x-auto scrollbar-hide">
+      <div className="mb-4 grid grid-cols-[minmax(0,1fr)_12px_minmax(0,1fr)_12px_minmax(0,1fr)_12px_minmax(0,1fr)] items-center border-b border-gray-200 md:flex md:items-center md:gap-1 md:overflow-x-auto md:scrollbar-hide">
         {VALID_ZONES.map((z, i) => (
           <React.Fragment key={z}>
-            {i > 0 && (
-              <span className="flex items-center text-gray-300 text-xs px-1 select-none">
-                {i === 3 ? '→?' : '→'}
-              </span>
-            )}
             <button
               onClick={() => setParam('zone', z)}
-              className={`px-3 md:px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap ${
+              className={`flex min-w-0 items-center justify-center border-b-2 px-1 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors cursor-pointer whitespace-nowrap md:flex-1 md:px-3 ${
                 zone === z
-                  ? 'border-b-2 border-accent-gold text-accent-gold'
-                  : 'text-gray-400 hover:text-charcoal'
+                  ? 'border-accent-gold text-accent-gold'
+                  : 'border-transparent text-gray-400 hover:text-charcoal'
               }`}
             >
-              {ZONE_LABELS[z].icon} {ZONE_LABELS[z].cn}<span className="hidden md:inline"> / {ZONE_LABELS[z].en}</span>
+              <span className="truncate">
+                {ZONE_LABELS[z].icon} {ZONE_LABELS[z].cn}
+                <span className="hidden md:inline"> / {ZONE_LABELS[z].en}</span>
+                {z === 'stone' && <span className="ml-1 text-gray-300">?</span>}
+              </span>
             </button>
+            {i < VALID_ZONES.length - 1 && (
+              <span className="flex items-center justify-center text-[11px] text-gray-300 select-none" aria-hidden="true">
+                →
+              </span>
+            )}
           </React.Fragment>
         ))}
       </div>
 
       {/* Discipline filter */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
         <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Discipline / 学科:</span>
-        <select
+        <CustomSelect
+          ariaLabel="Discipline / 学科"
+          className="w-full sm:w-[252px]"
+          options={disciplineOptions}
           value={discipline}
-          onChange={e => setParam('discipline', e.target.value)}
-          className="border border-gray-300 px-1 py-[6px] md:px-3 md:py-1.5 text-sm focus:outline-none focus:border-accent-gold bg-white cursor-pointer"
-        >
-          {DISCIPLINES.map(d => (
-            <option key={d.value} value={d.value}>{d.cn} / {d.en}</option>
-          ))}
-        </select>
+          onChange={value => setParam('discipline', value)}
+        />
       </div>
 
       {/* Sort controls (not shown for latrine) */}
       {sortOptions.length > 0 && (
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sort / 排序:</span>
-          {sortOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setParam('sort', opt.value)}
-              className={`px-1 py-[6px] md:px-3 md:py-1.5 text-[10px] font-bold uppercase tracking-widest border transition-colors cursor-pointer ${
-                sort === opt.value
-                  ? 'border-accent-gold text-accent-gold bg-yellow-50'
-                  : 'border-gray-300 text-gray-400 hover:border-accent-gold hover:text-accent-gold'
-              }`}
-            >
-              {opt.en} / {opt.cn}
-            </button>
-          ))}
+        <div className="mb-4 md:flex md:items-center md:gap-2">
+          <span className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-gray-400 md:mb-0">Sort / 排序:</span>
+          <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-2">
+            {sortOptions.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setParam('sort', opt.value)}
+                className={`px-1 py-[6px] text-[10px] font-bold uppercase tracking-widest border transition-colors cursor-pointer md:px-3 md:py-1.5 ${
+                  sort === opt.value
+                    ? 'border-accent-gold text-accent-gold bg-yellow-50'
+                    : 'border-gray-300 text-gray-400 hover:border-accent-gold hover:text-accent-gold'
+                }`}
+              >
+                {opt.en} / {opt.cn}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

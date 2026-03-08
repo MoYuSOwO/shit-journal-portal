@@ -82,12 +82,21 @@ export interface MockFeedback {
   } | null;
 }
 
+export interface MockRating {
+  user_id: string;
+  article_id: string;
+  score: number;
+  created_at: string;
+}
+
 export interface MockDatabase {
   users: MockUser[];
   articles: MockArticle[];
   comments: MockComment[];
   notifications: MockNotification[];
   feedback: MockFeedback[];
+  ratings: MockRating[];
+  favorite_article_ids_by_user: Record<string, string[]>;
   sessions: Record<string, string>;
 }
 
@@ -162,6 +171,7 @@ export const DEMO_ACCOUNTS = [
   { email: 'editor@shitjournal.org', password: 'mock123456', role: 'editor', label: 'Editor' },
   { email: 'admin@shitjournal.org', password: 'mock123456', role: 'admin', label: 'Admin' },
   { email: 'author@shitjournal.org', password: 'mock123456', role: 'author', label: 'Author' },
+  { email: 'reader@shitjournal.org', password: 'mock123456', role: 'author', label: 'Reader' },
 ] as const;
 
 const users: MockUser[] = [
@@ -222,6 +232,18 @@ const users: MockUser[] = [
     avatar_url: null,
     role: 'reviewer',
     created_at: isoFromNow(30),
+    author_badge: null,
+    is_sniffer_today: false,
+  },
+  {
+    id: 'user-reader',
+    email: 'reader@shitjournal.org',
+    display_name: 'Toilet Tourist',
+    institution: 'Casual Reading Room',
+    social_media: '@toilettourist',
+    avatar_url: null,
+    role: 'author',
+    created_at: isoFromNow(18),
     author_badge: null,
     is_sniffer_today: false,
   },
@@ -691,6 +713,38 @@ const feedback: MockFeedback[] = [
   },
 ];
 
+const ratings: MockRating[] = [
+  {
+    user_id: 'user-reader',
+    article_id: 'art-latrine-1',
+    score: 5,
+    created_at: isoFromNow(1, 4),
+  },
+  {
+    user_id: 'user-reader',
+    article_id: 'art-septic-1',
+    score: 4,
+    created_at: isoFromNow(2, 2),
+  },
+  {
+    user_id: 'user-reader',
+    article_id: 'art-daiyu-1',
+    score: 5,
+    created_at: isoFromNow(3, 1),
+  },
+  {
+    user_id: 'user-kl',
+    article_id: 'art-septic-1',
+    score: 4,
+    created_at: isoFromNow(4, 1),
+  },
+];
+
+const favoriteArticleIdsByUser: Record<string, string[]> = {
+  'user-reader': ['art-septic-1', 'art-daiyu-1', 'art-search-hardcore-3'],
+  'user-kl': ['art-septic-1', 'art-sediment-1'],
+};
+
 export function createInitialMockDatabase(): MockDatabase {
   return {
     users: structuredClone(users),
@@ -698,6 +752,8 @@ export function createInitialMockDatabase(): MockDatabase {
     comments: structuredClone(comments),
     notifications: structuredClone(notifications),
     feedback: structuredClone(feedback),
+    ratings: structuredClone(ratings),
+    favorite_article_ids_by_user: structuredClone(favoriteArticleIdsByUser),
     sessions: {},
   };
 }

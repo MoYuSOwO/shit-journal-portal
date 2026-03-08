@@ -131,6 +131,16 @@ export const API = {
     getDetail: async (articleId) => {
       return fetchAPI(`/api/articles/${articleId}`);
     },
+    addFavorite: async (articleId: string) => {
+      return fetchAPI(`/api/articles/${articleId}/favorite`, {
+        method: 'POST',
+      });
+    },
+    removeFavorite: async (articleId: string) => {
+      return fetchAPI(`/api/articles/${articleId}/favorite`, {
+        method: 'DELETE',
+      });
+    },
     upload: async (title: string, tag: string, discipline: string, topic: string | null | undefined, coAuthors: any[], file: File) => {
       const formData = new FormData();
       formData.append('title', title);
@@ -179,7 +189,8 @@ export const API = {
 
     report: async (id: string, reason: string = '') => 
       fetchAPI(`/api/articles/${id}/report`, { 
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ reason }),
       }),
   },
 
@@ -207,7 +218,8 @@ export const API = {
     },
     reportComment: async (commentId: string, reason: string = '') => 
       fetchAPI(`/api/interactions/comments/${commentId}/report`, { 
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ reason }),
       }),
   },
 
@@ -221,6 +233,14 @@ export const API = {
     },
     getMyArticles: async () => {
       const res = await fetchAPI('/api/users/me/articles');
+      return res.data || res.items || res.articles || res;
+    },
+    getMyFavorites: async () => {
+      const res = await fetchAPI('/api/users/me/favorites');
+      return res.data || res.items || res.articles || res;
+    },
+    getMyRatedArticles: async () => {
+      const res = await fetchAPI('/api/users/me/ratings');
       return res.data || res.items || res.articles || res;
     },
     updateProfile: async (displayName?: string, avatarUrl?: string, institution?: string, socialMedia?: string) => {
