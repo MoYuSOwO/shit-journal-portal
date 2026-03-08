@@ -53,7 +53,7 @@ const App: React.FC = () => (
           <Route path="/admin/feedback" element={<RoleProtectedRoute allowedRoles={['editor']}><FeedbackViewer /></RoleProtectedRoute>} />
           <Route path="/admin/users" element={<RoleProtectedRoute allowedRoles={['super_admin']}><UserManagement /></RoleProtectedRoute>} />
           <Route path="/admin/actions" element={<RoleProtectedRoute allowedRoles={['admin']}><AdminActions /></RoleProtectedRoute>} />
-          <Route path="/community-guard" element={<CommunityGuardPage />} />
+          {/* <Route path="/community-guard" element={<CommunityGuardPage />} /> */}
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
