@@ -106,10 +106,24 @@ function visiblePreprints() {
   return db.articles.filter(article => article.status === 'passed');
 }
 
-function articleForResponse(article: MockArticle) {
+function getUserRating(userId: string, articleId: string) {
+  return db.ratings.find(rating => rating.user_id === userId && rating.article_id === articleId) ?? null;
+}
+
+function getUserFavoriteArticleIds(userId: string) {
+  return db.favorite_article_ids_by_user[userId] ?? [];
+}
+
+function isArticleFavoritedByUser(userId: string, articleId: string) {
+  return getUserFavoriteArticleIds(userId).includes(articleId);
+}
+
+function articleForResponse(article: MockArticle, user?: MockUser | null) {
   return {
     ...article,
     zone: getZone(article),
+    my_score: user ? getUserRating(user.id, article.id)?.score ?? null : null,
+    is_favorited: user ? isArticleFavoritedByUser(user.id, article.id) : false,
   };
 }
 
@@ -274,6 +288,45 @@ export const handlers = [
     return json({ articles });
   }),
 
+  http.get('*/api/users/me/favorites', async ({ request }) => {
+    await delay(MOCK_DELAY_MS);
+    const user = getUserFromAuth(request);
+    if (!user) return unauthorized();
+
+    const articles = getUserFavoriteArticleIds(user.id)
+      .map(articleId => findArticle(articleId))
+      .filter((article): article is MockArticle => Boolean(article && article.status === 'passed'))
+      .map(article => ({
+        ...articleForResponse(article, user),
+        zones: getZone(article),
+      }));
+
+    return json({ articles });
+  }),
+
+  http.get('*/api/users/me/ratings', async ({ request }) => {
+    await delay(MOCK_DELAY_MS);
+    const user = getUserFromAuth(request);
+    if (!user) return unauthorized();
+
+    const articles = db.ratings
+      .filter(rating => rating.user_id === user.id)
+      .sort((left, right) => right.created_at.localeCompare(left.created_at))
+      .map(rating => {
+        const article = findArticle(rating.article_id);
+        if (!article || article.status !== 'passed') return null;
+        return {
+          ...articleForResponse(article, user),
+          zones: getZone(article),
+          rated_at: rating.created_at,
+          my_score: rating.score,
+        };
+      })
+      .filter(Boolean);
+
+    return json({ articles });
+  }),
+
   http.get('*/api/articles/', async ({ request }) => {
     await delay(MOCK_DELAY_MS);
     const url = new URL(request.url);
@@ -304,6 +357,47 @@ export const handlers = [
     return json({ total_count: totalCount });
   }),
 
+  http.get('*/api/search/article', async ({ request }) => {
+    await delay(MOCK_DELAY_MS);
+    const url = new URL(request.url);
+    const query = (url.searchParams.get('q') ?? '').trim().toLowerCase();
+    const type = (url.searchParams.get('type') ?? 'article').trim().toLowerCase();
+    const limit = Math.min(30, Number(url.searchParams.get('limit') ?? '10'));
+
+    if (query.length < 2) {
+      return json({ detail: 'Search term must be at least 2 characters' }, { status: 422 });
+    }
+
+    const matched = db.articles
+      .filter(article => article.status !== 'hidden' && article.status !== 'deleted')
+      .filter(article => {
+        const titleHit = article.title.toLowerCase().includes(query) || article.topic?.toLowerCase().includes(query);
+        const authorHit = article.author.display_name.toLowerCase().includes(query);
+
+        if (type === 'author') return authorHit;
+        return titleHit;
+      })
+      .sort((left, right) => right.created_at.localeCompare(left.created_at))
+      .slice(0, limit)
+      .map(article => ({
+        id: article.id,
+        title: article.title,
+        tag: article.tag,
+        zones: getZone(article),
+        status: article.status,
+        topic: article.topic,
+        discipline: article.discipline,
+        created_at: article.created_at,
+        rating_count: article.rating_count,
+        avg_score: article.avg_score,
+        weighted_score: article.weighted_score,
+        comment_count: commentCountForArticle(article.id),
+        author: article.author,
+      }));
+
+    return json({ status: 'success', data: matched });
+  }),
+
   http.get('*/api/articles/:articleId', async ({ params, request }) => {
     await delay(MOCK_DELAY_MS);
     const articleId = params.articleId as string;
@@ -328,7 +422,7 @@ export const handlers = [
       }));
 
     return json({
-      article: articleForResponse(article),
+      article: articleForResponse(article, user),
       comments,
     });
   }),
@@ -380,7 +474,7 @@ export const handlers = [
     db.articles.unshift(article);
     return json({
       message: 'Mock submission created',
-      article: articleForResponse(article),
+      article: articleForResponse(article, user),
     }, { status: 201 });
   }),
 
@@ -400,7 +494,7 @@ export const handlers = [
     article.discipline = body.discipline?.trim() || article.discipline;
     if (Array.isArray(body.co_authors)) article.co_authors = body.co_authors as MockArticle['co_authors'];
 
-    return json({ article: articleForResponse(article) });
+    return json({ article: articleForResponse(article, user) });
   }),
 
   http.put('*/api/articles/:articleId/file', async ({ params, request }) => {
@@ -422,7 +516,50 @@ export const handlers = [
     article.file_size_bytes = file.size;
     if (article.status === 'revisions') article.status = 'pending';
 
-    return json({ message: 'Mock file replaced', article: articleForResponse(article) });
+    return json({ message: 'Mock file replaced', article: articleForResponse(article, user) });
+  }),
+
+  http.post('*/api/articles/:articleId/favorite', async ({ params, request }) => {
+    await delay(MOCK_DELAY_MS);
+    const user = getUserFromAuth(request);
+    if (!user) return unauthorized();
+
+    const article = findArticle(params.articleId as string);
+    if (!article || article.status !== 'passed') {
+      return json({ detail: 'Article not found' }, { status: 404 });
+    }
+
+    const favorites = db.favorite_article_ids_by_user[user.id] ?? [];
+    if (!favorites.includes(article.id)) {
+      db.favorite_article_ids_by_user[user.id] = [article.id, ...favorites];
+    }
+
+    return json({
+      message: 'Mock favorite saved',
+      is_favorited: true,
+      article: articleForResponse(article, user),
+    });
+  }),
+
+  http.delete('*/api/articles/:articleId/favorite', async ({ params, request }) => {
+    await delay(MOCK_DELAY_MS);
+    const user = getUserFromAuth(request);
+    if (!user) return unauthorized();
+
+    const article = findArticle(params.articleId as string);
+    if (!article || article.status !== 'passed') {
+      return json({ detail: 'Article not found' }, { status: 404 });
+    }
+
+    db.favorite_article_ids_by_user[user.id] = getUserFavoriteArticleIds(user.id).filter(
+      articleId => articleId !== article.id,
+    );
+
+    return json({
+      message: 'Mock favorite removed',
+      is_favorited: false,
+      article: articleForResponse(article, user),
+    });
   }),
 
   http.delete('*/api/articles/:articleId', async ({ params, request }) => {
@@ -442,7 +579,12 @@ export const handlers = [
     await delay(MOCK_DELAY_MS);
     const user = getUserFromAuth(request);
     if (!user) return unauthorized();
-    return json({ message: 'Mock report received. Moderators will review it shortly.' });
+    const body = await request.json().catch(() => ({})) as { reason?: string };
+    const reason = body.reason?.trim() ?? '';
+    if (reason.length < 4) {
+      return json({ detail: 'Report reason must be at least 4 characters long' }, { status: 422 });
+    }
+    return json({ message: '举报已提交，我们会尽快审核。/ Report submitted successfully.' });
   }),
 
   http.post('*/api/interactions/rate', async ({ request }) => {
@@ -453,13 +595,31 @@ export const handlers = [
     const body = await request.json() as { article_id?: string; score?: number };
     const article = findArticle(body.article_id ?? '');
     if (!article) return json({ detail: 'Article not found' }, { status: 404 });
+    if (article.author.id === user.id) {
+      return json({ detail: 'You cannot rate your own submission' }, { status: 400 });
+    }
 
     const score = Math.max(1, Math.min(5, Number(body.score ?? 0)));
-    article.avg_score = Number((((article.avg_score * article.rating_count) + score) / (article.rating_count + 1)).toFixed(2));
-    article.rating_count += 1;
+    const existingRating = getUserRating(user.id, article.id);
+
+    if (existingRating) {
+      const totalScore = article.avg_score * article.rating_count;
+      article.avg_score = Number(((totalScore - existingRating.score + score) / Math.max(article.rating_count, 1)).toFixed(2));
+      existingRating.score = score;
+      existingRating.created_at = new Date().toISOString();
+    } else {
+      article.avg_score = Number((((article.avg_score * article.rating_count) + score) / (article.rating_count + 1)).toFixed(2));
+      article.rating_count += 1;
+      db.ratings.push({
+        user_id: user.id,
+        article_id: article.id,
+        score,
+        created_at: new Date().toISOString(),
+      });
+    }
     article.weighted_score = Number((article.avg_score * 0.96).toFixed(2));
 
-    return json({ message: 'Mock rating recorded', article: articleForResponse(article) });
+    return json({ message: 'Mock rating recorded', article: articleForResponse(article, user) });
   }),
 
   http.post('*/api/interactions/comment', async ({ request }) => {
@@ -521,7 +681,12 @@ export const handlers = [
     await delay(MOCK_DELAY_MS);
     const user = getUserFromAuth(request);
     if (!user) return unauthorized();
-    return json({ message: 'Mock comment report submitted' });
+    const body = await request.json().catch(() => ({})) as { reason?: string };
+    const reason = body.reason?.trim() ?? '';
+    if (reason.length < 4) {
+      return json({ detail: 'Report reason must be at least 4 characters long' }, { status: 422 });
+    }
+    return json({ message: '举报已提交，我们会尽快审核。/ Report submitted successfully.' });
   }),
 
   http.get('*/api/notifications/', async ({ request }) => {
