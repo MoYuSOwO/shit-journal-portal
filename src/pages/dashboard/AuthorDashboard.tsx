@@ -33,7 +33,22 @@ export const AuthorDashboard: React.FC = () => {
     const fetchSubmissions = async () => {
       try {
         const response = await API.users.getMyArticles();
-        const data = response.articles || response.data || response || [];
+        
+        // 🚀 终极防弹提取逻辑：一层一层剥洋葱，只要找到数组就停下
+        let data = [];
+        if (Array.isArray(response)) {
+            data = response;
+        } else if (response?.data && Array.isArray(response.data)) {
+            data = response.data; // 应对原生 Fetch 或单层嵌套
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+            data = response.data.data; // 应对 Axios + FastAPI 的双层嵌套陷阱
+        } else if (response?.articles && Array.isArray(response.articles)) {
+            data = response.articles;
+        }
+
+        // 🕵️ CTO 探针：如果界面还没出来，看一眼控制台打印的是不是数组
+        console.log("最终提取出的文章数组:", data); 
+        
         setSubmissions(data);
       } catch (error) {
         console.error("拉取我的文章失败:", error);
